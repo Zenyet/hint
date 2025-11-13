@@ -5,6 +5,7 @@ import { copyFileSync, mkdirSync, existsSync, readFileSync, writeFileSync } from
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: './',
   plugins: [
     react(),
     {
@@ -21,16 +22,22 @@ export default defineConfig({
           resolve(dist, 'manifest.json')
         )
 
-        // 为 content script 创建内联样式的 CSS
-        const popupCss = resolve(dist, 'assets/popup-CxoiZ0fM.css')
-        if (existsSync(popupCss)) {
-          const cssContent = readFileSync(popupCss, 'utf-8')
-          const contentDir = resolve(dist, 'content')
-          if (!existsSync(contentDir)) {
-            mkdirSync(contentDir, { recursive: true })
+        // 移动 popup HTML 文件到正确位置
+        const srcPopupHtml = resolve(dist, 'src/popup/index.html')
+        if (existsSync(srcPopupHtml)) {
+          const popupDir = resolve(dist, 'popup')
+          if (!existsSync(popupDir)) {
+            mkdirSync(popupDir, { recursive: true })
           }
-          writeFileSync(resolve(contentDir, 'index.css'), cssContent)
-          console.log('✓ Created content/index.css from popup CSS')
+
+          // 读取 HTML 内容并修正路径
+          let htmlContent = readFileSync(srcPopupHtml, 'utf-8')
+          // 将 ../../ 替换为 ../ (因为文件从 dist/src/popup 移动到 dist/popup)
+          htmlContent = htmlContent
+            .replace(/\.\.\/\.\.\//g, '../')
+
+          writeFileSync(resolve(popupDir, 'index.html'), htmlContent)
+          console.log('✓ Moved popup/index.html to correct location')
         }
       }
     }
