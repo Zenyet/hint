@@ -1,39 +1,30 @@
 {
-  "name": "hint",
-  "displayName": "Hint - AI Prompt Assistant",
+  "name": "hint-native",
+  "displayName": "Hint - AI Prompt Assistant (Native)",
   "version": "1.0.1",
-  "description": "An AI assistant for writing prompts",
+  "description": "An AI assistant for writing prompts - Native implementation with React",
   "author": "royzeng",
+  "type": "module",
   "scripts": {
-    "dev": "plasmo dev",
-    "build": "plasmo build",
-    "package": "plasmo package"
-  },
-  "devDependencies": {
-    "@plasmohq/prettier-plugin-sort-imports": "^4.0.1",
-    "@types/chrome": "^0.1.28",
-    "@types/node": "^24.10.1",
-    "@types/react": "^19.2.3",
-    "@types/react-dom": "^19.2.2",
-    "autoprefixer": "^10.4.22",
-    "plasmo": "^0.90.5",
-    "postcss": "^8.5.6",
-    "prettier": "^3.6.2",
-    "tailwindcss": "^3.4.18",
-    "typescript": "^5.8.3"
+    "dev": "vite build --watch --mode development",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@plasmohq/messaging": "^0.7.2",
     "openai": "^4.95.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
-  "manifest": {
-    "host_permissions": [
-      "https://*/*"
-    ],
-    "permissions": [
-      "storage"
-    ]
+  "devDependencies": {
+    "@types/chrome": "^0.1.28",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.3",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.18",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.2"
   }
 }

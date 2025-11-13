@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Hint - AI Prompt Assistant",
+  "version": "1.0.1",
+  "description": "An AI assistant for writing prompts",
+  "icons": {
+    "16": "assets/16.png",
+    "48": "assets/48.png",
+    "128": "assets/128.png"
+  },
+  "action": {
+    "default_popup": "popup/index.html",
+    "default_icon": {
+      "16": "assets/16.png",
+      "48": "assets/48.png",
+      "128": "assets/128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background/index.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.openai.com/*",
+        "*://*.chatgpt.com/*",
+        "*://*.claude.ai/*",
+        "*://*.yuanbao.tencent.com/*",
+        "*://*.gemini.google.com/*",
+        "*://*.chat.deepseek.com/*",
+        "*://*.grok.com/*"
+      ],
+      "js": ["content/index.js"],
+      "css": ["content/index.css"]
+    }
+  ],
+  "permissions": ["storage"],
+  "host_permissions": ["https://*/*"]
+}
