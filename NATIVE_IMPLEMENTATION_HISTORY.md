@@ -361,6 +361,41 @@ shadowRoot.appendChild(style);
 
 **结果**: ✅ CSS 成功内联到 content/index.js，扩展正常加载
 
+### 问题 4: Popup HTML 文件位置错误
+**错误**: `ERR_FILE_NOT_FOUND` - 点击扩展图标时无法访问文件
+
+**原因**:
+1. Vite 默认保留源码目录结构，HTML 被输出到 `dist/src/popup/index.html`
+2. manifest.json 期望文件在 `dist/popup/index.html`
+3. HTML 中的路径是从原始位置计算的相对路径
+
+**解决方案**:
+1. **添加 base 配置** - 在 `vite.config.ts` 中设置 `base: './'` 使用相对路径
+2. **移动 HTML 文件** - 在 closeBundle 钩子中将 HTML 从 `dist/src/popup` 移动到 `dist/popup`
+3. **修正相对路径** - 将 HTML 中的 `../../` 替换为 `../` 以匹配新位置
+
+**实施代码**:
+```typescript
+// vite.config.ts
+export default defineConfig({
+  base: './',  // 使用相对路径
+  plugins: [
+    {
+      name: 'copy-assets',
+      closeBundle() {
+        // 移动并修正 popup HTML
+        const srcPopupHtml = resolve(dist, 'src/popup/index.html')
+        let htmlContent = readFileSync(srcPopupHtml, 'utf-8')
+        htmlContent = htmlContent.replace(/\.\.\/\.\.\//g, '../')
+        writeFileSync(resolve(dist, 'popup/index.html'), htmlContent)
+      }
+    }
+  ]
+})
+```
+
+**结果**: ✅ Popup 页面成功加载，所有资源路径正确
+
 ---
 
 ## 功能验证
