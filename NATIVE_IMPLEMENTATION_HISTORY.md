@@ -323,9 +323,43 @@ mv tailwind.config.js tailwind.config.mjs
 **解决**: 移除未使用的变量
 
 ### 问题 3: Content Script CSS 未生成
-**现状**: 需要进一步配置 Vite 来正确处理 content script 的 CSS
+**错误**: `无法为脚本加载重叠样式表"content/index.css"`
 
-**待解决**: 在后续迭代中修复
+**原因**: Vite 不会自动为 content script 生成独立的 CSS 文件
+
+**解决方案**: 使用 Vite 的 `?inline` 导入将 CSS 内联到 JavaScript 中
+
+**实施步骤**:
+
+1. **创建类型声明文件** `src/vite-env.d.ts`:
+```typescript
+/// <reference types="vite/client" />
+
+declare module '*.css?inline' {
+  const content: string
+  export default content
+}
+```
+
+2. **修改 content script** `src/content/index.tsx`:
+```typescript
+import cssText from './index.css?inline';
+
+// 注入样式到 Shadow Root
+const style = document.createElement('style');
+style.textContent = cssText;
+shadowRoot.appendChild(style);
+```
+
+3. **移除 manifest.json 中的 CSS 引用**:
+```json
+"content_scripts": [{
+  "js": ["content/index.js"]
+  // 移除: "css": ["content/index.css"]
+}]
+```
+
+**结果**: ✅ CSS 成功内联到 content/index.js，扩展正常加载
 
 ---
 
@@ -366,7 +400,7 @@ mv tailwind.config.js tailwind.config.mjs
 
 ## 下一步计划
 
-1. 修复 Content Script CSS 注入
+1. ✅ 修复 Content Script CSS 注入（已完成 - 使用 ?inline 导入）
 2. 优化打包体积
 3. 添加开发模式热重载
 4. 完善错误处理
@@ -374,7 +408,7 @@ mv tailwind.config.js tailwind.config.mjs
 
 ---
 
-**实施时间**: 2025-11-12
+**实施时间**: 2025-11-12 ~ 2025-11-13
 **实施者**: Claude Code
 **分支**: feature/native-implementation
-**状态**: ✅ 基本完成，待优化
+**状态**: ✅ 完成 - CSS 内联注入已修复，扩展可正常加载

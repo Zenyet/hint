@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import ContentApp from './ContentApp';
-import './index.css';
+import cssText from './index.css?inline';
 
 // 查找可编辑元素
 function findEditableElement(): HTMLElement | null {
@@ -24,6 +24,12 @@ function init() {
 
   // 创建 Shadow Root
   const shadowRoot = container.attachShadow({ mode: 'open' });
+
+  // 注入样式到 Shadow Root
+  const style = document.createElement('style');
+  style.textContent = cssText;
+  shadowRoot.appendChild(style);
+
   const mountPoint = document.createElement('div');
   shadowRoot.appendChild(mountPoint);
 

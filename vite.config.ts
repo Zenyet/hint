@@ -1,16 +1,18 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
-import { copyFileSync, mkdirSync, existsSync } from 'fs'
+import { copyFileSync, mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     {
-      name: 'copy-manifest',
+      name: 'copy-assets',
       closeBundle() {
         const dist = resolve(__dirname, 'dist')
+
+        // 复制 manifest.json
         if (!existsSync(dist)) {
           mkdirSync(dist, { recursive: true })
         }
@@ -18,6 +20,18 @@ export default defineConfig({
           resolve(__dirname, 'public/manifest.json'),
           resolve(dist, 'manifest.json')
         )
+
+        // 为 content script 创建内联样式的 CSS
+        const popupCss = resolve(dist, 'assets/popup-CxoiZ0fM.css')
+        if (existsSync(popupCss)) {
+          const cssContent = readFileSync(popupCss, 'utf-8')
+          const contentDir = resolve(dist, 'content')
+          if (!existsSync(contentDir)) {
+            mkdirSync(contentDir, { recursive: true })
+          }
+          writeFileSync(resolve(contentDir, 'index.css'), cssContent)
+          console.log('✓ Created content/index.css from popup CSS')
+        }
       }
     }
   ],
