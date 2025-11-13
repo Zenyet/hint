@@ -103,8 +103,12 @@ class BackgroundService {
 
 const backgroundService = new BackgroundService();
 
+console.log('[Hint Extension] Background script loaded successfully');
+
 chrome.runtime.onConnect.addListener((port) => {
+  console.log('[Hint Extension] Port connected from:', port.sender);
   port.onMessage.addListener(async (request) => {
+    console.log('[Hint Extension] Received message:', request.type);
     if (request.type === "OPTIMIZE_TEXT") {
       try {
         await backgroundService.optimizeText(request, (response) => {
