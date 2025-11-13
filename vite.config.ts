@@ -53,7 +53,8 @@ export default defineConfig({
       output: {
         entryFileNames: '[name]/index.js',
         chunkFileNames: 'chunks/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash][extname]'
+        assetFileNames: 'assets/[name]-[hash][extname]',
+        format: 'es', // 使用 ES module 格式，配合 manifest.json 中的 type: "module"
       }
     }
   },

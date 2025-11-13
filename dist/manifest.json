@@ -31,7 +31,8 @@
         "*://*.chat.deepseek.com/*",
         "*://*.grok.com/*"
       ],
-      "js": ["content/index.js"]
+      "js": ["content/index.js"],
+      "type": "module"
     }
   ],
   "permissions": ["storage"],
