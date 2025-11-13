@@ -36,5 +36,11 @@
     }
   ],
   "permissions": ["storage"],
-  "host_permissions": ["https://*/*"]
+  "host_permissions": ["https://*/*"],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*.js", "chunks/*.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
