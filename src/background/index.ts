@@ -43,7 +43,7 @@ class BackgroundService {
     const storedBaseURL = await StorageService.getModelBaseURL();
 
     if (!apiKey) {
-      throw new Error("请先在设置���面配置 API Key");
+      throw new Error("请先配置 API Key");
     }
 
     const baseURL = baseURLOverride ?? storedBaseURL ?? "https://api.deepseek.com";
