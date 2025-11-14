@@ -3,6 +3,11 @@ import ReactDOM from 'react-dom/client';
 import ContentApp from './ContentApp';
 import cssText from './index.css?inline';
 
+// 全局变量保存当前状态
+let currentRoot: ReactDOM.Root | null = null;
+let currentContainer: HTMLElement | null = null;
+let currentTargetElement: HTMLElement | null = null;
+
 // 查找可编辑元素
 function findEditableElement(): HTMLElement | null {
   console.log('[Hint Extension] Searching for editable element...');
@@ -14,13 +19,39 @@ function findEditableElement(): HTMLElement | null {
   return element;
 }
 
+// 清理现有实例
+function cleanup() {
+  console.log('[Hint Extension] Cleaning up existing instance...');
+  if (currentRoot) {
+    currentRoot.unmount();
+    currentRoot = null;
+  }
+  if (currentContainer && currentContainer.parentNode) {
+    currentContainer.parentNode.removeChild(currentContainer);
+  }
+  currentContainer = null;
+  currentTargetElement = null;
+}
+
 // 初始化 Content Script
 function init() {
   console.log('[Hint Extension] Initializing content script...');
   const targetElement = findEditableElement();
+
   if (!targetElement) {
     console.log('[Hint Extension] No editable element found, skipping initialization');
     return;
+  }
+
+  // 如果已经为这个元素初始化了，跳过
+  if (currentTargetElement === targetElement && document.body.contains(currentContainer)) {
+    console.log('[Hint Extension] Already initialized for this element');
+    return;
+  }
+
+  // 清理旧实例
+  if (currentContainer || currentRoot) {
+    cleanup();
   }
 
   console.log('[Hint Extension] Creating UI container...');
@@ -49,14 +80,37 @@ function init() {
       <ContentApp targetElement={targetElement} />
     </React.StrictMode>
   );
+
+  // 保存状态
+  currentRoot = root;
+  currentContainer = container;
+  currentTargetElement = targetElement;
+
   console.log('[Hint Extension] Content script initialized successfully!');
+}
+
+// 检查当前 targetElement 是否还在 DOM 中
+function checkTargetElementValidity() {
+  if (currentTargetElement && !document.body.contains(currentTargetElement)) {
+    console.log('[Hint Extension] Target element removed from DOM, re-initializing...');
+    cleanup();
+    init();
+  }
 }
 
 // 监听 DOM 变化
 const observer = new MutationObserver(() => {
+  // 情况1: 容器被移除了，尝试重新初始化
   const existingRoot = document.getElementById('hint-extension-root');
   if (!existingRoot && findEditableElement()) {
+    console.log('[Hint Extension] Container removed, re-initializing...');
     init();
+    return;
+  }
+
+  // 情况2: 目标元素不在 DOM 中了，尝试重新初始化
+  if (currentContainer && document.body.contains(currentContainer)) {
+    checkTargetElementValidity();
   }
 });
 
@@ -75,3 +129,10 @@ if (document.readyState === 'loading') {
   setTimeout(init, 500);
   observer.observe(document.body, { childList: true, subtree: true });
 }
+
+// 定期检查目标元素是否还有效（作为后备机制）
+setInterval(() => {
+  if (currentTargetElement && currentContainer) {
+    checkTargetElementValidity();
+  }
+}, 2000);

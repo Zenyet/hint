@@ -4,8 +4,11 @@ import { resolve } from 'path'
 import { copyFileSync, mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs'
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base: './',
+  define: {
+    'import.meta.env.DEV': JSON.stringify(mode === 'development'),
+  },
   plugins: [
     react(),
     {
@@ -44,11 +47,10 @@ export default defineConfig({
   ],
   build: {
     outDir: 'dist',
+    emptyOutDir: false,  // 不清空输出目录，避免删除其他配置生成的文件
     rollupOptions: {
       input: {
         popup: resolve(__dirname, 'src/popup/index.html'),
-        background: resolve(__dirname, 'src/background/index.ts'),
-        content: resolve(__dirname, 'src/content/index.tsx'),
       },
       output: {
         entryFileNames: '[name]/index.js',
@@ -63,4 +65,4 @@ export default defineConfig({
       '@': resolve(__dirname, './src')
     }
   }
-})
+}))

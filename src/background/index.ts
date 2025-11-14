@@ -43,7 +43,7 @@ class BackgroundService {
     const storedBaseURL = await StorageService.getModelBaseURL();
 
     if (!apiKey) {
-      throw new Error("请先在设置页面配置 API Key");
+      throw new Error("请先在设置���面配置 API Key");
     }
 
     const baseURL = baseURLOverride ?? storedBaseURL ?? "https://api.deepseek.com";
@@ -103,12 +103,8 @@ class BackgroundService {
 
 const backgroundService = new BackgroundService();
 
-console.log('[Hint Extension] Background script loaded successfully');
-
 chrome.runtime.onConnect.addListener((port) => {
-  console.log('[Hint Extension] Port connected from:', port.sender);
   port.onMessage.addListener(async (request) => {
-    console.log('[Hint Extension] Received message:', request.type);
     if (request.type === "OPTIMIZE_TEXT") {
       try {
         await backgroundService.optimizeText(request, (response) => {
@@ -123,3 +119,60 @@ chrome.runtime.onConnect.addListener((port) => {
     }
   });
 });
+
+// 开发模式下的自动重载功能
+if (import.meta.env.DEV) {
+  const WS_URL = 'ws://localhost:8765';
+  let ws: WebSocket | null = null;
+  let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function connectReloadServer() {
+    try {
+      ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => {
+        console.log('[🔄 HMR] Connected to reload server');
+        if (reconnectTimer) {
+          clearTimeout(reconnectTimer);
+          reconnectTimer = null;
+        }
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (message.type === 'reload') {
+            console.log('[🔄 HMR] Reloading extension due to:', message.file);
+            chrome.runtime.reload();
+          }
+        } catch (error) {
+          console.error('[🔄 HMR] Error parsing message:', error);
+        }
+      };
+
+      ws.onerror = () => {
+        console.log('[🔄 HMR] WebSocket error, will retry...');
+      };
+
+      ws.onclose = () => {
+        console.log('[🔄 HMR] Disconnected from reload server, reconnecting...');
+        ws = null;
+        // 5 秒后重连
+        if (!reconnectTimer) {
+          reconnectTimer = setTimeout(connectReloadServer, 5000);
+        }
+      };
+    } catch (error) {
+      console.error('[🔄 HMR] Failed to connect:', error);
+      // 5 秒后重试
+      if (!reconnectTimer) {
+        reconnectTimer = setTimeout(connectReloadServer, 5000);
+      }
+    }
+  }
+
+  // 启动连接
+  connectReloadServer();
+
+  console.log('[🔄 HMR] Auto-reload enabled');
+}
