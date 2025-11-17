@@ -15,6 +15,8 @@ interface ContentAppProps {
  * Main content script component that provides text optimization UI
  * Displays a floating toolbar above the target editable element
  * Shows before/after comparison during optimization
+ *
+ * Design: Progressive disclosure - starts minimal, expands when needed
  */
 export default function ContentApp({ targetElement }: ContentAppProps) {
   // Track the position of the target element
@@ -44,6 +46,29 @@ export default function ContentApp({ targetElement }: ContentAppProps) {
     }
   };
 
+  // Idle state: Only show the action button (minimal UI)
+  if (buttonState === 'idle') {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          left: `${position.left}px`,
+          top: `${position.top}px`,
+          transform: 'translateY(-100%)',
+          zIndex: 9999,
+          pointerEvents: 'auto'
+        }}
+        className="animate-fadeIn">
+        <ActionButton
+          buttonState={buttonState}
+          isLoading={isLoading}
+          onClick={handleActionClick}
+        />
+      </div>
+    );
+  }
+
+  // Active states: Show full toolbar with content
   return (
     <FloatingToolbar position={position}>
       {/* Show before/after comparison while optimizing or ready to replace */}
@@ -68,8 +93,8 @@ export default function ContentApp({ targetElement }: ContentAppProps) {
         />
       )}
 
-      {/* Close button (visible when not in idle state) */}
-      {buttonState !== 'idle' && <CloseButton onClick={handleClose} />}
+      {/* Close button (always visible in active states) */}
+      <CloseButton onClick={handleClose} />
     </FloatingToolbar>
   );
 }
