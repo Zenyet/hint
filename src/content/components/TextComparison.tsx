@@ -33,6 +33,7 @@ export function TextComparison({ originalText, optimizedText }: TextComparisonPr
           text-gray-600 dark:text-gray-400
           border border-gray-200/50 dark:border-gray-700/50
           leading-relaxed
+          scrollbar-xy
         ">
           {originalText || <span className="text-gray-400 dark:text-gray-500 italic">无内容</span>}
         </div>
@@ -64,6 +65,7 @@ export function TextComparison({ originalText, optimizedText }: TextComparisonPr
           text-gray-800 dark:text-gray-200
           border border-blue-200/50 dark:border-blue-800/50
           leading-relaxed
+          scrollbar-xy
         ">
           {optimizedText || (
             <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500">

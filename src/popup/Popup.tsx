@@ -53,18 +53,8 @@ export default function PopupApp() {
   };
 
   return (
-    <div className="w-[420px] min-h-[500px] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Header with frosted glass effect */}
-      <div className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-b border-gray-200/50 dark:border-gray-700/50 px-6 py-5">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
-          Hint 设置
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          配置 AI 文本优化助手
-        </p>
-      </div>
-
-      <div className="p-6 space-y-5">
+    <div className="w-[420px] min-h-[500px] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 scrollbar-hide">
+      <div className="p-6 space-y-5 scrollbar-hide">
         {/* API Key Input */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">

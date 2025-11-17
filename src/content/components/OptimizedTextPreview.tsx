@@ -24,6 +24,7 @@ export function OptimizedTextPreview({ text }: OptimizedTextPreviewProps) {
       border border-gray-200/50 dark:border-gray-700/50
       leading-relaxed
       animate-slideIn
+      scrollbar-xy
     ">
       {text}
     </div>

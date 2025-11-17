@@ -44,6 +44,39 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function({ addUtilities, theme }) {
+      const thumb = theme('colors.gray.400');
+      const track = theme('colors.gray.200');
+      addUtilities({
+        '.scrollbar-hide': {
+          '-ms-overflow-style': 'none',
+          'scrollbar-width': 'none',
+        },
+        '.scrollbar-hide::-webkit-scrollbar': {
+          display: 'none',
+        },
+        '.scrollbar-xy': {
+          'scrollbar-width': 'thin',
+          'scrollbar-color': `${thumb} ${track}`,
+        },
+        '.scrollbar-xy::-webkit-scrollbar': {
+          width: '8px',
+          height: '8px',
+        },
+        '.scrollbar-xy::-webkit-scrollbar-track': {
+          background: track,
+        },
+        '.scrollbar-xy::-webkit-scrollbar-thumb': {
+          background: thumb,
+          'border-radius': '9999px',
+          border: `2px solid ${track}`,
+        },
+        '.scrollbar-xy::-webkit-scrollbar-thumb:hover': {
+          background: theme('colors.gray.500'),
+        },
+      });
+    }
+  ],
   darkMode: 'media',
 }
