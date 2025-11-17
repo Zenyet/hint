@@ -8,13 +8,14 @@ interface CloseButtonProps {
  * - Clean X icon design
  * - Subtle hover effect
  * - Smooth animations
+ * - Consistent size with ActionButton
  */
 export function CloseButton({ onClick }: CloseButtonProps) {
   return (
     <button
       onClick={onClick}
       className="
-        p-2 rounded-lg
+        p-2.5 rounded-xl
         text-gray-500 dark:text-gray-400
         hover:bg-gray-100 dark:hover:bg-gray-800
         hover:text-gray-700 dark:hover:text-gray-200
