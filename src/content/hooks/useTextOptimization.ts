@@ -3,6 +3,7 @@ import { ButtonState, OptimizationResponse } from '../types';
 
 interface UseTextOptimizationResult {
   buttonState: ButtonState;
+  originalText: string;
   optimizedText: string;
   isLoading: boolean;
   errorMessage: string;
@@ -18,6 +19,7 @@ interface UseTextOptimizationResult {
  */
 export function useTextOptimization(targetElement: HTMLElement): UseTextOptimizationResult {
   const [buttonState, setButtonState] = useState<ButtonState>('idle');
+  const [originalText, setOriginalText] = useState('');
   const [optimizedText, setOptimizedText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -30,11 +32,12 @@ export function useTextOptimization(targetElement: HTMLElement): UseTextOptimiza
     };
   }, []);
 
-  const handleOptimize = useCallback((originalText: string) => {
+  const handleOptimize = useCallback((text: string) => {
     if (isLoading) return;
 
     setIsLoading(true);
     setButtonState('optimize');
+    setOriginalText(text);
     setOptimizedText('');
     setErrorMessage('');
 
@@ -61,7 +64,7 @@ export function useTextOptimization(targetElement: HTMLElement): UseTextOptimiza
 
       portRef.current.postMessage({
         type: 'OPTIMIZE_TEXT',
-        text: originalText
+        text: text
       });
     } catch (error: any) {
       setErrorMessage(error.message);
@@ -80,6 +83,7 @@ export function useTextOptimization(targetElement: HTMLElement): UseTextOptimiza
     }
 
     setButtonState('idle');
+    setOriginalText('');
     setOptimizedText('');
     setErrorMessage('');
   }, [optimizedText]);
@@ -88,6 +92,7 @@ export function useTextOptimization(targetElement: HTMLElement): UseTextOptimiza
     if (buttonState === 'error' || buttonState === 'optimize') {
       portRef.current?.postMessage({ type: 'ABORT_OPTIMIZATION' });
       setButtonState('idle');
+      setOriginalText('');
       setOptimizedText('');
       setErrorMessage('');
     } else {
@@ -97,6 +102,7 @@ export function useTextOptimization(targetElement: HTMLElement): UseTextOptimiza
 
   return {
     buttonState,
+    originalText,
     optimizedText,
     isLoading,
     errorMessage,

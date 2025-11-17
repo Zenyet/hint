@@ -1,7 +1,7 @@
 import { useElementPosition, useTextOptimization } from './hooks';
 import {
   FloatingToolbar,
-  OptimizedTextPreview,
+  TextComparison,
   ErrorMessage,
   ActionButton,
   CloseButton
@@ -14,6 +14,7 @@ interface ContentAppProps {
 /**
  * Main content script component that provides text optimization UI
  * Displays a floating toolbar above the target editable element
+ * Shows before/after comparison during optimization
  */
 export default function ContentApp({ targetElement }: ContentAppProps) {
   // Track the position of the target element
@@ -22,6 +23,7 @@ export default function ContentApp({ targetElement }: ContentAppProps) {
   // Manage text optimization state and handlers
   const {
     buttonState,
+    originalText,
     optimizedText,
     isLoading,
     errorMessage,
@@ -44,9 +46,12 @@ export default function ContentApp({ targetElement }: ContentAppProps) {
 
   return (
     <FloatingToolbar position={position}>
-      {/* Show optimized text preview while optimizing */}
+      {/* Show before/after comparison while optimizing or ready to replace */}
       {(buttonState === 'optimize' || buttonState === 'replace') && (
-        <OptimizedTextPreview text={optimizedText} />
+        <TextComparison
+          originalText={originalText}
+          optimizedText={optimizedText}
+        />
       )}
 
       {/* Show error message if optimization failed */}
