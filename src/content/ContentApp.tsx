@@ -45,7 +45,7 @@ export default function ContentApp({ targetElement }: ContentAppProps) {
   return (
     <FloatingToolbar position={position}>
       {/* Show optimized text preview while optimizing */}
-      {buttonState === 'optimize' && optimizedText && (
+      {buttonState === 'optimize' && (
         <OptimizedTextPreview text={optimizedText} />
       )}
 
