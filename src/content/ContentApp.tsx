@@ -56,7 +56,9 @@ export default function ContentApp({ targetElement }: ContentAppProps) {
           top: `${position.top}px`,
           transform: 'translateY(-100%)',
           zIndex: 9999,
-          pointerEvents: 'auto'
+          pointerEvents: 'auto',
+          // Add subtle shadow for depth
+          filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15))'
         }}
         className="animate-fadeIn">
         <ActionButton

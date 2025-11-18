@@ -7,11 +7,12 @@ interface FloatingToolbarProps {
 }
 
 /**
- * FloatingToolbar - Apple-inspired floating UI component
+ * FloatingToolbar - Liquid Glass container
  * Features:
- * - Frosted glass effect (backdrop blur)
- * - Smooth shadows and larger corner radius
- * - Elegant spacing and transitions
+ * - True glass material with edge highlights
+ * - Multi-layer depth effect
+ * - Enhanced blur and vibrancy
+ * - Adaptive shadows
  */
 export function FloatingToolbar({ position, children }: FloatingToolbarProps) {
   return (
@@ -22,16 +23,44 @@ export function FloatingToolbar({ position, children }: FloatingToolbarProps) {
         top: `${position.top}px`,
         transform: 'translateY(-100%)',
         zIndex: 9999,
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
       }}
       className="animate-fadeIn">
-      {/* Apple-style frosted glass card */}
+      {/* Liquid Glass card with edge highlights */}
       <div
-        className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-2.5"
-        style={{
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)'
-        }}>
-        <div className="flex items-center gap-2.5">
+        className="
+          backdrop-blur-2xl
+          bg-white/25 dark:bg-gray-900/80
+          rounded-2xl
+          p-2.5
+          relative
+          overflow-hidden
+
+          ring-1 ring-inset ring-white/40 dark:ring-white/20
+
+          shadow-[0_8px_32px_rgba(31,38,135,0.15),0_2px_8px_rgba(0,0,0,0.1)]
+        ">
+        {/* Glass edge highlight gradient */}
+        <div
+          className="absolute inset-0 rounded-2xl pointer-events-none"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%)',
+            mixBlendMode: 'overlay',
+          }}
+        />
+
+        {/* Inner glow for depth */}
+        <div
+          className="absolute inset-0 rounded-2xl pointer-events-none opacity-60"
+          style={{
+            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), inset 0 -1px 2px rgba(0,0,0,0.05)',
+          }}
+        />
+
+        {/* Content */}
+        <div className="flex items-center gap-2.5 relative z-10">
           {children}
         </div>
       </div>

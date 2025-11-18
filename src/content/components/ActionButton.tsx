@@ -24,13 +24,13 @@ export function ActionButton({ buttonState, isLoading, onClick }: ActionButtonPr
       </svg>
     );
     if (buttonState === 'replace') return (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"/>
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
       </svg>
     );
     return (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
       </svg>
     );
   };
@@ -56,12 +56,35 @@ export function ActionButton({ buttonState, isLoading, onClick }: ActionButtonPr
       `;
     }
 
-    // Solid style for active states
+    // Liquid Glass style for replace state (green)
     if (buttonState === 'replace') {
-      return 'bg-green-500 dark:bg-green-600 text-white hover:bg-green-600 dark:hover:bg-green-700';
+      return `
+        backdrop-blur-2xl
+        bg-green-500/90 dark:bg-green-600/90
+        text-white
+        hover:bg-green-600/90 dark:hover:bg-green-700/90
+
+        shadow-[0_8px_32px_rgba(34,197,94,0.25),0_1px_2px_rgba(0,0,0,0.1)]
+        hover:shadow-[0_12px_48px_rgba(34,197,94,0.3),0_2px_4px_rgba(0,0,0,0.15)]
+
+        ring-1 ring-inset ring-white/30 dark:ring-white/20
+        hover:ring-white/40 dark:hover:ring-white/25
+      `;
     }
 
-    return 'bg-blue-500 dark:bg-blue-600 text-white hover:bg-blue-600 dark:hover:bg-blue-700';
+    // Liquid Glass style for optimize state (blue)
+    return `
+      backdrop-blur-2xl
+      bg-blue-500/90 dark:bg-blue-600/90
+      text-white
+      hover:bg-blue-600/90 dark:hover:bg-blue-700/90
+
+      shadow-[0_8px_32px_rgba(59,130,246,0.25),0_1px_2px_rgba(0,0,0,0.1)]
+      hover:shadow-[0_12px_48px_rgba(59,130,246,0.3),0_2px_4px_rgba(0,0,0,0.15)]
+
+      ring-1 ring-inset ring-white/30 dark:ring-white/20
+      hover:ring-white/40 dark:hover:ring-white/25
+    `;
   };
 
   return (
@@ -74,38 +97,31 @@ export function ActionButton({ buttonState, isLoading, onClick }: ActionButtonPr
         transition-all duration-300 ease-out
         active:scale-95
         disabled:opacity-60 disabled:cursor-not-allowed
-        shadow-md hover:shadow-lg
         font-medium
         relative
         overflow-hidden
       `}
       style={{
-        // Liquid glass material properties
-        ...(buttonState === 'idle' && {
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        })
+        // Liquid glass material properties for all states
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
       }}
       title={getButtonTitle()}>
       {/* Glass edge highlight - top/left lighter edge */}
-      {buttonState === 'idle' && (
-        <>
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 50%)',
-              mixBlendMode: 'overlay',
-            }}
-          />
-          {/* Subtle inner glow */}
-          <div
-            className="absolute inset-0 rounded-full opacity-60"
-            style={{
-              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), inset 0 -1px 1px rgba(0,0,0,0.05)',
-            }}
-          />
-        </>
-      )}
+      <div
+        className="absolute inset-0 rounded-full pointer-events-none"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 50%)',
+          mixBlendMode: 'overlay',
+        }}
+      />
+      {/* Subtle inner glow */}
+      <div
+        className="absolute inset-0 rounded-full pointer-events-none opacity-60"
+        style={{
+          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), inset 0 -1px 1px rgba(0,0,0,0.05)',
+        }}
+      />
 
       {/* Icon content */}
       <div className="relative z-10">

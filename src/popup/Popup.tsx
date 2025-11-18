@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 
 /**
- * PopupApp - Apple-inspired settings interface
+ * PopupApp - Liquid Glass settings interface
  * Features:
- * - Clean, spacious layout
- * - Frosted glass effects
+ * - True glass material throughout
+ * - Multi-layer depth effects
+ * - Enhanced blur and vibrancy
  * - Smooth animations
- * - Better form controls
  */
 export default function PopupApp() {
   const [apiKey, setApiKey] = useState('');
@@ -61,45 +61,68 @@ export default function PopupApp() {
             API Key
             <span className="text-red-500 ml-1">*</span>
           </label>
-          <div className="relative">
+          <div className="relative flex items-center">
             <input
               type={showPassword ? 'text' : 'password'}
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="sk-..."
               className="
-                w-full px-4 py-3 pr-12
-                bg-white dark:bg-gray-800
-                border border-gray-200 dark:border-gray-700
+                w-full px-4 py-3 pr-11
+                backdrop-blur-xl
+                bg-white/60 dark:bg-gray-800/60
+                ring-1 ring-inset ring-gray-200/50 dark:ring-gray-700/50
                 rounded-xl
                 text-gray-900 dark:text-white
                 placeholder-gray-400 dark:placeholder-gray-500
-                focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600
-                focus:border-transparent
+                focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-600/50
                 transition-all duration-200
                 text-sm
               "
+              style={{
+                backdropFilter: 'blur(12px) saturate(120%)',
+                WebkitBackdropFilter: 'blur(12px) saturate(120%)',
+              }}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="
-                absolute right-3 top-1/2 -translate-y-1/2
-                p-2 rounded-lg
-                text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300
-                hover:bg-gray-100 dark:hover:bg-gray-700
+                right-2.5 top-1/2 -translate-y-1/2
+                p-1.5 rounded-md
+                backdrop-blur-xl
+                bg-white/50 dark:bg-white/15
+                text-gray-600 dark:text-gray-400
+                hover:bg-white/70 dark:hover:bg-white/25
+                hover:text-gray-800 dark:hover:text-gray-200
+                ring-1 ring-inset ring-gray-300/40 dark:ring-gray-600/40
                 transition-all duration-200
-              ">
-              {showPassword ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
-                </svg>
-              )}
+                absolute overflow-hidden
+                z-10
+              "
+              style={{
+                backdropFilter: 'blur(12px) saturate(120%)',
+                WebkitBackdropFilter: 'blur(12px) saturate(120%)',
+              }}>
+              <div
+                className="absolute inset-0 rounded-md pointer-events-none"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 50%)',
+                  mixBlendMode: 'overlay',
+                }}
+              />
+              <div className="relative z-10">
+                {showPassword ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                  </svg>
+                )}
+              </div>
             </button>
           </div>
         </div>
@@ -116,16 +139,20 @@ export default function PopupApp() {
             placeholder="默认使用 deepseek API"
             className="
               w-full px-4 py-3
-              bg-white dark:bg-gray-800
-              border border-gray-200 dark:border-gray-700
+              backdrop-blur-xl
+              bg-white/60 dark:bg-gray-800/60
+              ring-1 ring-inset ring-gray-200/50 dark:ring-gray-700/50
               rounded-xl
               text-gray-900 dark:text-white
               placeholder-gray-400 dark:placeholder-gray-500
-              focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600
-              focus:border-transparent
+              focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-600/50
               transition-all duration-200
               text-sm
             "
+            style={{
+              backdropFilter: 'blur(12px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(12px) saturate(120%)',
+            }}
           />
         </div>
 
@@ -141,16 +168,20 @@ export default function PopupApp() {
             placeholder="默认使用 deepseek-chat"
             className="
               w-full px-4 py-3
-              bg-white dark:bg-gray-800
-              border border-gray-200 dark:border-gray-700
+              backdrop-blur-xl
+              bg-white/60 dark:bg-gray-800/60
+              ring-1 ring-inset ring-gray-200/50 dark:ring-gray-700/50
               rounded-xl
               text-gray-900 dark:text-white
               placeholder-gray-400 dark:placeholder-gray-500
-              focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600
-              focus:border-transparent
+              focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-600/50
               transition-all duration-200
               text-sm
             "
+            style={{
+              backdropFilter: 'blur(12px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(12px) saturate(120%)',
+            }}
           />
         </div>
 
@@ -166,18 +197,22 @@ export default function PopupApp() {
             rows={4}
             className="
               w-full px-4 py-3
-              bg-white dark:bg-gray-800
-              border border-gray-200 dark:border-gray-700
+              backdrop-blur-xl
+              bg-white/60 dark:bg-gray-800/60
+              ring-1 ring-inset ring-gray-200/50 dark:ring-gray-700/50
               rounded-xl
               text-gray-900 dark:text-white
               placeholder-gray-400 dark:placeholder-gray-500
-              focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600
-              focus:border-transparent
+              focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-600/50
               transition-all duration-200
               resize-none
               text-sm
               leading-relaxed
             "
+            style={{
+              backdropFilter: 'blur(12px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(12px) saturate(120%)',
+            }}
           />
         </div>
 
@@ -204,15 +239,37 @@ export default function PopupApp() {
           <div
             className={`
               p-4 rounded-xl
-              backdrop-blur-sm
-              border
+              backdrop-blur-2xl
+              relative overflow-hidden
               animate-slideIn
               ${notification.type === 'success'
-                ? 'bg-green-50/90 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200/50 dark:border-green-800/50'
-                : 'bg-red-50/90 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200/50 dark:border-red-800/50'
+                ? 'bg-green-50/25 dark:bg-green-900/15 text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-200/40 dark:ring-green-800/30'
+                : 'bg-red-50/25 dark:bg-red-900/20 text-red-700 dark:text-red-400 ring-1 ring-inset ring-red-200/40 dark:ring-red-800/30'
               }
-            `}>
-            <div className="flex items-center gap-2">
+            `}
+            style={{
+              backdropFilter: 'blur(16px) saturate(150%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(150%)',
+            }}>
+            {/* Glass edge highlight */}
+            <div
+              className="absolute inset-0 rounded-xl pointer-events-none"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 50%)',
+                mixBlendMode: 'overlay',
+              }}
+            />
+
+            {/* Inner glow */}
+            <div
+              className="absolute inset-0 rounded-xl pointer-events-none opacity-50"
+              style={{
+                boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4), inset 0 -1px 2px rgba(0,0,0,0.05)',
+              }}
+            />
+
+            {/* Content */}
+            <div className="flex items-center gap-2 relative z-10">
               {notification.type === 'success' ? (
                 <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
