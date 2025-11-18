@@ -7,12 +7,13 @@ interface ActionButtonProps {
 }
 
 /**
- * ActionButton - Apple-inspired primary action button
+ * ActionButton - Apple Liquid Glass design
+ * Based on: https://developer.apple.com/design/human-interface-guidelines/materials
  * Features:
- * - SF Symbols-style icons
- * - Smooth press animation
- * - Elegant hover effects
- * - Clear visual feedback
+ * - True glass material with edge highlights
+ * - Multi-layer depth effect
+ * - Adaptive blur and saturation
+ * - iOS 17+ design language
  */
 export function ActionButton({ buttonState, isLoading, onClick }: ActionButtonProps) {
   const getButtonIcon = () => {
@@ -39,9 +40,27 @@ export function ActionButton({ buttonState, isLoading, onClick }: ActionButtonPr
   };
 
   const getButtonStyles = () => {
+    // Liquid Glass style for idle state
+    if (buttonState === 'idle') {
+      return `
+        backdrop-blur-2xl
+        bg-white/25 dark:bg-white/15
+        text-blue-600 dark:text-blue-400
+        hover:bg-white/35 dark:hover:bg-white/20
+
+        shadow-[0_8px_32px_rgba(31,38,135,0.15),0_1px_2px_rgba(0,0,0,0.1)]
+        hover:shadow-[0_12px_48px_rgba(31,38,135,0.2),0_2px_4px_rgba(0,0,0,0.15)]
+
+        ring-1 ring-inset ring-white/40 dark:ring-white/20
+        hover:ring-white/50 dark:hover:ring-white/25
+      `;
+    }
+
+    // Solid style for active states
     if (buttonState === 'replace') {
       return 'bg-green-500 dark:bg-green-600 text-white hover:bg-green-600 dark:hover:bg-green-700';
     }
+
     return 'bg-blue-500 dark:bg-blue-600 text-white hover:bg-blue-600 dark:hover:bg-blue-700';
   };
 
@@ -51,15 +70,47 @@ export function ActionButton({ buttonState, isLoading, onClick }: ActionButtonPr
       disabled={isLoading}
       className={`
         ${getButtonStyles()}
-        p-2.5 rounded-xl
-        transition-all duration-200 ease-out
+        p-2.5 rounded-full
+        transition-all duration-300 ease-out
         active:scale-95
         disabled:opacity-60 disabled:cursor-not-allowed
         shadow-md hover:shadow-lg
         font-medium
+        relative
+        overflow-hidden
       `}
+      style={{
+        // Liquid glass material properties
+        ...(buttonState === 'idle' && {
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        })
+      }}
       title={getButtonTitle()}>
-      {getButtonIcon()}
+      {/* Glass edge highlight - top/left lighter edge */}
+      {buttonState === 'idle' && (
+        <>
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 50%)',
+              mixBlendMode: 'overlay',
+            }}
+          />
+          {/* Subtle inner glow */}
+          <div
+            className="absolute inset-0 rounded-full opacity-60"
+            style={{
+              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), inset 0 -1px 1px rgba(0,0,0,0.05)',
+            }}
+          />
+        </>
+      )}
+
+      {/* Icon content */}
+      <div className="relative z-10">
+        {getButtonIcon()}
+      </div>
     </button>
   );
 }
