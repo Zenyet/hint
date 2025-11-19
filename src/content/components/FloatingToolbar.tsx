@@ -24,8 +24,6 @@ export function FloatingToolbar({ position, children }: FloatingToolbarProps) {
         transform: 'translateY(-100%)',
         zIndex: 9999,
         pointerEvents: 'auto',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
       }}
       className="animate-fadeIn">
       {/* Liquid Glass card with edge highlights */}
@@ -41,7 +39,11 @@ export function FloatingToolbar({ position, children }: FloatingToolbarProps) {
           ring-1 ring-inset ring-white/40 dark:ring-white/20
 
           shadow-[0_8px_32px_rgba(31,38,135,0.15),0_2px_8px_rgba(0,0,0,0.1)]
-        ">
+        "
+        style={{
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        }}>
         {/* Glass edge highlight gradient */}
         <div
           className="absolute inset-0 rounded-2xl pointer-events-none"
