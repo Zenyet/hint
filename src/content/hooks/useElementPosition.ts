@@ -1,35 +1,53 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Position } from '../types';
 
 /**
  * Custom hook to track the position of a target element
  * Monitors: resize, scroll, DOM mutations, and content changes
- * Uses requestAnimationFrame for performance optimization
+ *
+ * Performance optimizations:
+ * - requestAnimationFrame throttling (max 60fps)
+ * - Only updates state when position actually changes
+ * - Passive event listeners for scroll/resize
+ * - Cached position comparison to avoid unnecessary renders
+ * - Reduced MutationObserver scope
+ *
  * @param targetElement - The HTML element to track
  * @returns The current position of the element
  */
 export function useElementPosition(targetElement: HTMLElement): Position {
   const [position, setPosition] = useState<Position>({ left: 0, top: 0 });
   const rafIdRef = useRef<number | null>(null);
+  const lastPositionRef = useRef<Position>({ left: 0, top: 0 });
 
-  useEffect(() => {
-    const updatePosition = () => {
-      // Cancel any pending update
-      if (rafIdRef.current !== null) {
-        cancelAnimationFrame(rafIdRef.current);
+  // Memoized update function to avoid recreating on each render
+  const updatePosition = useCallback(() => {
+    // Cancel any pending update (coalesce multiple triggers into one)
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+    }
+
+    // Schedule update on next animation frame (throttling to ~60fps)
+    rafIdRef.current = requestAnimationFrame(() => {
+      const rect = targetElement.getBoundingClientRect();
+      const newLeft = rect.left + window.scrollX;
+      const newTop = rect.top + window.scrollY - 15;
+
+      // Only update state if position actually changed (avoid unnecessary re-renders)
+      if (
+        newLeft !== lastPositionRef.current.left ||
+        newTop !== lastPositionRef.current.top
+      ) {
+        const newPosition = { left: newLeft, top: newTop };
+        lastPositionRef.current = newPosition;
+        setPosition(newPosition);
       }
 
-      // Schedule update on next animation frame (throttling)
-      rafIdRef.current = requestAnimationFrame(() => {
-        const rect = targetElement.getBoundingClientRect();
-        setPosition({
-          left: rect.left + window.scrollX,
-          top: rect.top + window.scrollY - 15
-        });
-        rafIdRef.current = null;
-      });
-    };
+      rafIdRef.current = null;
+    });
+  }, [targetElement]);
 
+  useEffect(() => {
     // Initial position update
     updatePosition();
 
@@ -38,24 +56,25 @@ export function useElementPosition(targetElement: HTMLElement): Position {
     resizeObserver.observe(targetElement);
 
     // 2. Observe DOM mutations (handles dynamic content changes)
+    // Optimized: reduced scope, removed subtree for better performance
     const mutationObserver = new MutationObserver(updatePosition);
     mutationObserver.observe(targetElement, {
-      childList: true,        // Watch for child node additions/removals
-      subtree: true,          // Watch all descendants
+      childList: true,        // Watch for direct child node changes
       characterData: true,    // Watch for text content changes
-      attributes: true,       // Watch for attribute changes (style, class, etc.)
-      attributeFilter: ['style', 'class'] // Only watch relevant attributes
+      attributes: true,       // Watch for attribute changes
+      attributeFilter: ['style', 'class'], // Only relevant attributes
+      // Note: subtree removed - ResizeObserver handles descendant size changes
     });
 
-    // 3. Listen to window resize events
-    window.addEventListener('resize', updatePosition);
+    // 3. Listen to window resize events (passive for better scroll performance)
+    window.addEventListener('resize', updatePosition, { passive: true });
 
-    // 4. Listen to scroll events (both window and document)
-    window.addEventListener('scroll', updatePosition, true); // Use capture phase
-    document.addEventListener('scroll', updatePosition, true);
+    // 4. Listen to scroll events (single listener with capture phase)
+    // Using capture phase to catch scroll events from any scrollable ancestor
+    window.addEventListener('scroll', updatePosition, { capture: true, passive: true });
 
-    // 5. Listen to input events as fallback for contenteditable changes
-    targetElement.addEventListener('input', updatePosition);
+    // 5. Listen to input events for contenteditable/textarea changes
+    targetElement.addEventListener('input', updatePosition, { passive: true });
 
     // Cleanup
     return () => {
@@ -67,11 +86,10 @@ export function useElementPosition(targetElement: HTMLElement): Position {
       resizeObserver.disconnect();
       mutationObserver.disconnect();
       window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
-      document.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('scroll', updatePosition, { capture: true } as EventListenerOptions);
       targetElement.removeEventListener('input', updatePosition);
     };
-  }, [targetElement]);
+  }, [targetElement, updatePosition]);
 
   return position;
 }
