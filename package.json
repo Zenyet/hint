@@ -1,7 +1,7 @@
 {
   "name": "hint-native",
   "displayName": "Hint - AI Prompt Assistant (Native)",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "An AI assistant for writing prompts - Native implementation with React",
   "author": "royzeng",
   "type": "module",
