@@ -3,6 +3,7 @@ import { ButtonState } from '../types';
 interface ActionButtonProps {
   buttonState: ButtonState;
   isLoading: boolean;
+  disabled?: boolean;  // 禁用状态（例如：内容为空）
   onClick: () => void;
 }
 
@@ -14,8 +15,9 @@ interface ActionButtonProps {
  * - Multi-layer depth effect
  * - Adaptive blur and saturation
  * - iOS 17+ design language
+ * - Disabled state with glass material (when content is empty)
  */
-export function ActionButton({ buttonState, isLoading, onClick }: ActionButtonProps) {
+export function ActionButton({ buttonState, isLoading, disabled = false, onClick }: ActionButtonProps) {
   const getButtonIcon = () => {
     if (isLoading) return (
       <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -40,6 +42,19 @@ export function ActionButton({ buttonState, isLoading, onClick }: ActionButtonPr
   };
 
   const getButtonStyles = () => {
+    // Disabled state - gray glass material
+    if (disabled) {
+      return `
+        backdrop-blur-2xl
+        bg-gray-200/30 dark:bg-gray-700/30
+        text-gray-400 dark:text-gray-500
+
+        shadow-[0_4px_16px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.05)]
+
+        ring-1 ring-inset ring-gray-300/30 dark:ring-gray-600/30
+      `;
+    }
+
     // Liquid Glass style for idle state
     if (buttonState === 'idle') {
       return `
@@ -90,7 +105,7 @@ export function ActionButton({ buttonState, isLoading, onClick }: ActionButtonPr
   return (
     <button
       onClick={onClick}
-      disabled={isLoading}
+      disabled={isLoading || disabled}
       className={`
         ${getButtonStyles()}
         p-2.5 rounded-full
@@ -106,7 +121,7 @@ export function ActionButton({ buttonState, isLoading, onClick }: ActionButtonPr
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
       }}
-      title={getButtonTitle()}>
+      title={disabled ? '请先输入内容' : getButtonTitle()}>
       {/* Glass edge highlight - top/left lighter edge */}
       <div
         className="absolute inset-0 rounded-full pointer-events-none"

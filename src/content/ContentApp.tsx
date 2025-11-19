@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useElementPosition, useTextOptimization } from './hooks';
 import {
   FloatingToolbar,
@@ -28,6 +29,12 @@ export default function ContentApp({ targetElement, positioningElement }: Conten
   // Track the position of the positioning container (stable reference)
   const position = useElementPosition(positioningElement);
 
+  // Track if content is empty (for disabling button)
+  const [isEmpty, setIsEmpty] = useState(() => {
+    const text = (targetElement.textContent || '').trim();
+    return text.length === 0;
+  });
+
   // Manage text optimization state and handlers
   const {
     buttonState,
@@ -39,6 +46,33 @@ export default function ContentApp({ targetElement, positioningElement }: Conten
     handleReplace,
     handleClose
   } = useTextOptimization(targetElement);
+
+  // Monitor content changes to update isEmpty state
+  useEffect(() => {
+    const checkEmpty = () => {
+      const text = (targetElement.textContent || '').trim();
+      setIsEmpty(text.length === 0);
+    };
+
+    // Check on mount
+    checkEmpty();
+
+    // Listen to input events (works for both contenteditable and textarea)
+    targetElement.addEventListener('input', checkEmpty);
+
+    // Listen to DOM mutations as backup (for contenteditable)
+    const observer = new MutationObserver(checkEmpty);
+    observer.observe(targetElement, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
+    return () => {
+      targetElement.removeEventListener('input', checkEmpty);
+      observer.disconnect();
+    };
+  }, [targetElement]);
 
   // Get the original text to optimize
   const getOriginalText = () => targetElement.textContent || '';
@@ -70,6 +104,7 @@ export default function ContentApp({ targetElement, positioningElement }: Conten
         <ActionButton
           buttonState={buttonState}
           isLoading={isLoading}
+          disabled={isEmpty}
           onClick={handleActionClick}
         />
       </div>
