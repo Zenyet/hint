@@ -75,6 +75,40 @@ export default {
         '.scrollbar-xy::-webkit-scrollbar-thumb:hover': {
           background: theme('colors.gray.500'),
         },
+
+        // Liquid Glass scrollbar - Red (for "before" text)
+        '.scrollbar-glass-red::-webkit-scrollbar': {
+          width: '6px',
+        },
+        '.scrollbar-glass-red::-webkit-scrollbar-track': {
+          background: 'transparent',
+        },
+        '.scrollbar-glass-red::-webkit-scrollbar-thumb': {
+          background: 'rgba(239, 68, 68, 0.25)',
+          'border-radius': '9999px',
+          border: '1px solid rgba(239, 68, 68, 0.15)',
+        },
+        '.scrollbar-glass-red::-webkit-scrollbar-thumb:hover': {
+          background: 'rgba(239, 68, 68, 0.4)',
+          border: '1px solid rgba(239, 68, 68, 0.25)',
+        },
+
+        // Liquid Glass scrollbar - Green (for "after" text)
+        '.scrollbar-glass-green::-webkit-scrollbar': {
+          width: '6px',
+        },
+        '.scrollbar-glass-green::-webkit-scrollbar-track': {
+          background: 'transparent',
+        },
+        '.scrollbar-glass-green::-webkit-scrollbar-thumb': {
+          background: 'rgba(34, 197, 94, 0.25)',
+          'border-radius': '9999px',
+          border: '1px solid rgba(34, 197, 94, 0.15)',
+        },
+        '.scrollbar-glass-green::-webkit-scrollbar-thumb:hover': {
+          background: 'rgba(34, 197, 94, 0.4)',
+          border: '1px solid rgba(34, 197, 94, 0.25)',
+        },
       });
     }
   ],

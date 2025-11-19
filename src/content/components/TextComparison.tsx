@@ -22,19 +22,14 @@ export function TextComparison({ originalText, optimizedText }: TextComparisonPr
             优化前
           </span>
         </div>
+
+        {/* Glass container (fixed decorations) */}
         <div
           className="
-            max-h-24
-            overflow-y-auto
-            px-4 py-2.5
             backdrop-blur-2xl
             bg-red-50/25 dark:bg-red-900/15
             rounded-xl
-            text-sm
-            text-gray-700 dark:text-gray-300
             ring-1 ring-inset ring-red-200/40 dark:ring-red-800/30
-            leading-relaxed
-            scrollbar-xy
             relative
             overflow-hidden
           "
@@ -42,7 +37,7 @@ export function TextComparison({ originalText, optimizedText }: TextComparisonPr
             backdropFilter: 'blur(16px) saturate(150%)',
             WebkitBackdropFilter: 'blur(16px) saturate(150%)',
           }}>
-          {/* Glass edge highlight gradient */}
+          {/* Glass edge highlight gradient - FIXED (doesn't scroll) */}
           <div
             className="absolute inset-0 rounded-xl pointer-events-none"
             style={{
@@ -51,7 +46,7 @@ export function TextComparison({ originalText, optimizedText }: TextComparisonPr
             }}
           />
 
-          {/* Inner glow for depth */}
+          {/* Inner glow for depth - FIXED (doesn't scroll) */}
           <div
             className="absolute inset-0 rounded-xl pointer-events-none opacity-50"
             style={{
@@ -59,8 +54,23 @@ export function TextComparison({ originalText, optimizedText }: TextComparisonPr
             }}
           />
 
-          {/* Content */}
-          <div className="relative z-10">
+          {/* Scrollable content container */}
+          <div
+            className="
+              max-h-24
+              overflow-y-auto
+              px-4 py-2.5
+              text-sm
+              text-gray-700 dark:text-gray-300
+              leading-relaxed
+              relative z-10
+              scrollbar-glass-red
+            "
+            style={{
+              /* Firefox scrollbar */
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'rgba(239, 68, 68, 0.3) transparent',
+            }}>
             {originalText || <span className="text-gray-400 dark:text-gray-500 italic">无内容</span>}
           </div>
         </div>
@@ -94,19 +104,14 @@ export function TextComparison({ originalText, optimizedText }: TextComparisonPr
             优化后
           </span>
         </div>
+
+        {/* Glass container (fixed decorations) */}
         <div
           className="
-            max-h-24
-            overflow-y-auto
-            px-4 py-2.5
             backdrop-blur-2xl
             bg-green-50/25 dark:bg-green-900/15
             rounded-xl
-            text-sm
-            text-gray-800 dark:text-gray-200
             ring-1 ring-inset ring-green-200/40 dark:ring-green-800/30
-            leading-relaxed
-            scrollbar-xy
             relative
             overflow-hidden
           "
@@ -114,7 +119,7 @@ export function TextComparison({ originalText, optimizedText }: TextComparisonPr
             backdropFilter: 'blur(16px) saturate(150%)',
             WebkitBackdropFilter: 'blur(16px) saturate(150%)',
           }}>
-          {/* Glass edge highlight gradient */}
+          {/* Glass edge highlight gradient - FIXED (doesn't scroll) */}
           <div
             className="absolute inset-0 rounded-xl pointer-events-none"
             style={{
@@ -123,7 +128,7 @@ export function TextComparison({ originalText, optimizedText }: TextComparisonPr
             }}
           />
 
-          {/* Inner glow for depth */}
+          {/* Inner glow for depth - FIXED (doesn't scroll) */}
           <div
             className="absolute inset-0 rounded-xl pointer-events-none opacity-50"
             style={{
@@ -131,8 +136,23 @@ export function TextComparison({ originalText, optimizedText }: TextComparisonPr
             }}
           />
 
-          {/* Content */}
-          <div className="relative z-10">
+          {/* Scrollable content container */}
+          <div
+            className="
+              max-h-24
+              overflow-y-auto
+              px-4 py-2.5
+              text-sm
+              text-gray-800 dark:text-gray-200
+              leading-relaxed
+              relative z-10
+              scrollbar-glass-green
+            "
+            style={{
+              /* Firefox scrollbar */
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'rgba(34, 197, 94, 0.3) transparent',
+            }}>
             {optimizedText || (
               <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500">
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
