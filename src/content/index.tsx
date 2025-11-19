@@ -19,6 +19,107 @@ function findEditableElement(): HTMLElement | null {
   return element;
 }
 
+/**
+ * 查找合适的定位参考容器
+ *
+ * 策略：
+ * - textarea: 直接使用元素本身（textarea 本身就是固定容器，内容滚动在内部）
+ * - contenteditable: 查找有高度约束或 overflow 的父容器
+ *
+ * 边界处理：
+ * - 父容器是 body → 使用元素本身
+ * - 没有合适的父容器 → 使用元素本身
+ * - 父容器高度小于元素 → 使用父容器（说明父容器是滚动容器）
+ */
+function findPositioningContainer(element: HTMLElement): HTMLElement {
+  console.log('[Hint Extension] Finding positioning container for:', element);
+
+  // Textarea: 直接使用元素本身（内容滚动在内部）
+  if (element.tagName.toLowerCase() === 'textarea') {
+    console.log('[Hint Extension] Element is textarea, using element itself for positioning');
+    return element;
+  }
+
+  // Contenteditable: 查找合适的父容器
+  let parent = element.parentElement;
+
+  // 边界情况：没有父容器或父容器是 body
+  if (!parent || parent === document.body) {
+    console.log('[Hint Extension] No suitable parent (or parent is body), using element itself');
+    return element;
+  }
+
+  // 检查父容器是否是合适的定位参考
+  const parentStyles = window.getComputedStyle(parent);
+
+  // 检查父容器是否有高度约束
+  const hasFixedHeight = parentStyles.height !== 'auto' && parentStyles.height !== '';
+  const hasMaxHeight = parentStyles.maxHeight !== 'none' && parentStyles.maxHeight !== '';
+
+  // 检查父容器是否有 overflow（说明是滚动容器）
+  const hasOverflow =
+    parentStyles.overflow === 'auto' || parentStyles.overflow === 'scroll' ||
+    parentStyles.overflowY === 'auto' || parentStyles.overflowY === 'scroll' ||
+    parentStyles.overflowX === 'hidden'; // 有时 overflow-x: hidden 也表示是个容器
+
+  // 检查父容器高度是否小于元素（说明父容器是滚动容��）
+  const parentRect = parent.getBoundingClientRect();
+  const elementRect = element.getBoundingClientRect();
+  const isParentSmaller = parentRect.height < elementRect.height;
+
+  // 如果父容器符合以下任一条件，使用父容器：
+  // 1. 有固定高度或最大高度
+  // 2. 有 overflow 设置（滚动容器）
+  // 3. 高度小于元素（说明是滚动容器）
+  if (hasFixedHeight || hasMaxHeight || hasOverflow || isParentSmaller) {
+    console.log('[Hint Extension] Found suitable parent container:', {
+      parent,
+      hasFixedHeight,
+      hasMaxHeight,
+      hasOverflow,
+      isParentSmaller,
+      parentHeight: parentRect.height,
+      elementHeight: elementRect.height
+    });
+    return parent;
+  }
+
+  // 继续向上查找（最多查找 3 层）
+  let ancestor = parent.parentElement;
+  let depth = 0;
+  const maxDepth = 3;
+
+  while (ancestor && ancestor !== document.body && depth < maxDepth) {
+    const ancestorStyles = window.getComputedStyle(ancestor);
+    const ancestorRect = ancestor.getBoundingClientRect();
+
+    const hasFixedHeight = ancestorStyles.height !== 'auto' && ancestorStyles.height !== '';
+    const hasMaxHeight = ancestorStyles.maxHeight !== 'none' && ancestorStyles.maxHeight !== '';
+    const hasOverflow =
+      ancestorStyles.overflow === 'auto' || ancestorStyles.overflow === 'scroll' ||
+      ancestorStyles.overflowY === 'auto' || ancestorStyles.overflowY === 'scroll';
+    const isAncestorSmaller = ancestorRect.height < elementRect.height;
+
+    if (hasFixedHeight || hasMaxHeight || hasOverflow || isAncestorSmaller) {
+      console.log('[Hint Extension] Found suitable ancestor container at depth', depth, ':', {
+        ancestor,
+        hasFixedHeight,
+        hasMaxHeight,
+        hasOverflow,
+        isAncestorSmaller
+      });
+      return ancestor;
+    }
+
+    ancestor = ancestor.parentElement;
+    depth++;
+  }
+
+  // 如果找不到合适的父容器，使用元素本身
+  console.log('[Hint Extension] No suitable parent container found, using element itself');
+  return element;
+}
+
 // 清理现有实例
 function cleanup() {
   console.log('[Hint Extension] Cleaning up existing instance...');
@@ -54,6 +155,10 @@ function init() {
     cleanup();
   }
 
+  // 查找合适的定位容器
+  const positioningElement = findPositioningContainer(targetElement);
+  console.log('[Hint Extension] Using positioning element:', positioningElement);
+
   console.log('[Hint Extension] Creating UI container...');
   // 创建容器
   const container = document.createElement('div');
@@ -77,7 +182,10 @@ function init() {
   const root = ReactDOM.createRoot(mountPoint);
   root.render(
     <React.StrictMode>
-      <ContentApp targetElement={targetElement} />
+      <ContentApp
+        targetElement={targetElement}
+        positioningElement={positioningElement}
+      />
     </React.StrictMode>
   );
 

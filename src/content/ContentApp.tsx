@@ -8,7 +8,8 @@ import {
 } from './components';
 
 interface ContentAppProps {
-  targetElement: HTMLElement;
+  targetElement: HTMLElement;        // 用于获取/设置文本内容
+  positioningElement: HTMLElement;   // 用于定位按钮位置
 }
 
 /**
@@ -17,10 +18,15 @@ interface ContentAppProps {
  * Shows before/after comparison during optimization
  *
  * Design: Progressive disclosure - starts minimal, expands when needed
+ *
+ * Positioning Strategy:
+ * - targetElement: The actual contenteditable/textarea for text operations
+ * - positioningElement: A stable parent container for button positioning
+ *   (avoids position issues when content height changes or scrolls)
  */
-export default function ContentApp({ targetElement }: ContentAppProps) {
-  // Track the position of the target element
-  const position = useElementPosition(targetElement);
+export default function ContentApp({ targetElement, positioningElement }: ContentAppProps) {
+  // Track the position of the positioning container (stable reference)
+  const position = useElementPosition(positioningElement);
 
   // Manage text optimization state and handlers
   const {
