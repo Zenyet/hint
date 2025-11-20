@@ -129,7 +129,8 @@ const prompt = `
    - 不构成可理解自然语言的内容
    - 长度过短且无语义（如“??”、“嗯”、“啊”）
 
-你的输出格式为 markdown 格式:
+你的输出格式如下：
+markdown格式
 `;
 
 export default prompt;

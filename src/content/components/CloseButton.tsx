@@ -1,16 +1,23 @@
+import { ButtonState } from '../types';
+
 interface CloseButtonProps {
   onClick: () => void;
+  buttonState?: ButtonState;
 }
 
 /**
- * CloseButton - Liquid Glass close button
+ * CloseButton - Liquid Glass close/stop button
  * Features:
  * - True glass material with edge highlights
  * - Multi-layer depth effect
  * - Smooth animations and hover states
+ * - Dynamic icon based on state (stop during optimization, close otherwise)
  * - Consistent size with ActionButton (p-2.5 rounded-xl)
  */
-export function CloseButton({ onClick }: CloseButtonProps) {
+export function CloseButton({ onClick, buttonState = 'idle' }: CloseButtonProps) {
+  const isOptimizing = buttonState === 'optimize';
+  const title = isOptimizing ? '停止优化' : '关闭';
+
   return (
     <button
       onClick={onClick}
@@ -37,7 +44,7 @@ export function CloseButton({ onClick }: CloseButtonProps) {
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
       }}
-      title="关闭">
+      title={title}>
       {/* Glass edge highlight gradient */}
       <div
         className="absolute inset-0 rounded-full pointer-events-none"
@@ -55,11 +62,19 @@ export function CloseButton({ onClick }: CloseButtonProps) {
         }}
       />
 
-      {/* Icon content */}
+      {/* Icon content - Dynamic based on state */}
       <div className="relative z-10">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
+        {isOptimizing ? (
+          // Stop icon (square) when optimizing
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <rect x="6" y="6" width="12" height="12" rx="1.5" />
+          </svg>
+        ) : (
+          // Close icon (X) for other states
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        )}
       </div>
     </button>
   );

@@ -89,16 +89,31 @@ export function useTextOptimization(targetElement: HTMLElement): UseTextOptimiza
   }, [optimizedText]);
 
   const handleClose = useCallback(() => {
-    if (buttonState === 'error' || buttonState === 'optimize') {
+    if (buttonState === 'error') {
+      // 错误状态：清空所有内容
       portRef.current?.postMessage({ type: 'ABORT_OPTIMIZATION' });
       setButtonState('idle');
       setOriginalText('');
       setOptimizedText('');
       setErrorMessage('');
+    } else if (buttonState === 'optimize') {
+      // 优化中状态：中断请求但保留已生成的文本
+      portRef.current?.postMessage({ type: 'ABORT_OPTIMIZATION' });
+      setIsLoading(false);
+      // 如果有生成的文本，切换到 replace 状态让用户可以选择是否替换
+      if (optimizedText.trim()) {
+        setButtonState('replace');
+      } else {
+        // 如果没有生成任何文本，返回 idle 状态
+        setButtonState('idle');
+        setOriginalText('');
+        setOptimizedText('');
+      }
     } else {
+      // replace 状态：取消替换
       handleReplace(targetElement, true);
     }
-  }, [buttonState, targetElement, handleReplace]);
+  }, [buttonState, targetElement, handleReplace, optimizedText]);
 
   return {
     buttonState,

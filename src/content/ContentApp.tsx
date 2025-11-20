@@ -142,7 +142,7 @@ export default function ContentApp({ targetElement, positioningElement }: Conten
       )}
 
       {/* Close button (always visible in active states) */}
-      <CloseButton onClick={handleClose} />
+      <CloseButton onClick={handleClose} buttonState={buttonState} />
     </FloatingToolbar>
   );
 }
