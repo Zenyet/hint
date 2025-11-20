@@ -21,15 +21,7 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "*://*.openai.com/*",
-        "*://*.chatgpt.com/*",
-        "*://*.claude.ai/*",
-        "*://*.yuanbao.tencent.com/*",
-        "*://*.gemini.google.com/*",
-        "*://*.chat.deepseek.com/*",
-        "*://*.grok.com/*"
-      ],
+      "matches": ["<all_urls>"],
       "js": ["content/index.js"]
     }
   ],

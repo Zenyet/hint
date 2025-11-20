@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
  * - Multi-layer depth effects
  * - Enhanced blur and vibrancy
  * - Smooth animations
+ * - URL management for content script activation
  */
 export default function PopupApp() {
   const [apiKey, setApiKey] = useState('');
@@ -16,16 +17,29 @@ export default function PopupApp() {
   const [showPassword, setShowPassword] = useState(false);
   const [notification, setNotification] = useState<{message: string; type: 'success' | 'error'} | null>(null);
 
+  // URL 管理相关状态（简化为域名列表）
+  const [allowedUrls, setAllowedUrls] = useState<string[]>([
+    'openai.com',
+    'chatgpt.com',
+    'claude.ai',
+    'yuanbao.tencent.com',
+    'gemini.google.com',
+    'chat.deepseek.com',
+    'grok.com'
+  ]);
+  const [newUrl, setNewUrl] = useState('');
+
   useEffect(() => {
     loadSettings();
   }, []);
 
   const loadSettings = async () => {
-    const result = await chrome.storage.sync.get(['api_key', 'model_base_url', 'model_name', 'custom_prompt']);
+    const result = await chrome.storage.sync.get(['api_key', 'model_base_url', 'model_name', 'custom_prompt', 'allowed_urls']);
     if (result.api_key) setApiKey(result.api_key);
     if (result.model_base_url) setModelUrl(result.model_base_url);
     if (result.model_name) setModelName(result.model_name);
     if (result.custom_prompt) setCustomPrompt(result.custom_prompt);
+    if (result.allowed_urls) setAllowedUrls(result.allowed_urls);
   };
 
   const saveSettings = async () => {
@@ -39,12 +53,33 @@ export default function PopupApp() {
         api_key: apiKey.trim(),
         model_base_url: modelUrl.trim(),
         model_name: modelName.trim(),
-        custom_prompt: customPrompt
+        custom_prompt: customPrompt,
+        allowed_urls: allowedUrls
       });
       showNotification('设置已保存', 'success');
     } catch (error: any) {
       showNotification(`保存失败：${error.message}`, 'error');
     }
+  };
+
+  const addUrl = () => {
+    const trimmedUrl = newUrl.trim();
+    if (!trimmedUrl) {
+      showNotification('请输入有效的域名', 'error');
+      return;
+    }
+    if (allowedUrls.includes(trimmedUrl)) {
+      showNotification('该域名已存在', 'error');
+      return;
+    }
+    setAllowedUrls([...allowedUrls, trimmedUrl]);
+    setNewUrl('');
+    showNotification('域名已添加', 'success');
+  };
+
+  const removeUrl = (url: string) => {
+    setAllowedUrls(allowedUrls.filter(u => u !== url));
+    showNotification('域名已移除', 'success');
   };
 
   const showNotification = (message: string, type: 'success' | 'error') => {
@@ -54,6 +89,58 @@ export default function PopupApp() {
 
   return (
     <div className="w-[420px] min-h-[500px] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 scrollbar-hide">
+      {/* Notification - centered toast */}
+      {notification && (
+        <div
+          className={`
+            fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50
+            min-w-[280px] max-w-[360px]
+            p-4 rounded-xl
+            backdrop-blur-2xl
+            overflow-hidden
+            animate-fadeIn
+            ${notification.type === 'success'
+              ? 'bg-green-50/25 dark:bg-green-900/15 text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-200/40 dark:ring-green-800/30'
+              : 'bg-red-50/25 dark:bg-red-900/20 text-red-700 dark:text-red-400 ring-1 ring-inset ring-red-200/40 dark:ring-red-800/30'
+            }
+          `}
+          style={{
+            backdropFilter: 'blur(16px) saturate(150%)',
+            WebkitBackdropFilter: 'blur(16px) saturate(150%)',
+          }}>
+          {/* Glass edge highlight */}
+          <div
+            className="absolute inset-0 rounded-xl pointer-events-none"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 50%)',
+              mixBlendMode: 'overlay',
+            }}
+          />
+
+          {/* Inner glow */}
+          <div
+            className="absolute inset-0 rounded-xl pointer-events-none opacity-50"
+            style={{
+              boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4), inset 0 -1px 2px rgba(0,0,0,0.05)',
+            }}
+          />
+
+          {/* Content */}
+          <div className="flex items-center gap-2 relative z-10">
+            {notification.type === 'success' ? (
+              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+              </svg>
+            ) : (
+              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+              </svg>
+            )}
+            <span className="text-sm font-medium">{notification.message}</span>
+          </div>
+        </div>
+      )}
+
       <div className="p-6 space-y-5 scrollbar-hide">
         {/* API Key Input */}
         <div className="space-y-2">
@@ -216,6 +303,115 @@ export default function PopupApp() {
           />
         </div>
 
+        {/* URL Management Section */}
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            允许的网站域名
+            <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+              自动匹配根域名和子域名
+            </span>
+          </label>
+
+          {/* Add URL Input */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newUrl}
+              onChange={(e) => setNewUrl(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addUrl()}
+              placeholder="例如: example.com"
+              className="
+                flex-1 px-4 py-2.5
+                backdrop-blur-xl
+                bg-white/60 dark:bg-gray-800/60
+                ring-1 ring-inset ring-gray-200/50 dark:ring-gray-700/50
+                rounded-lg
+                text-gray-900 dark:text-white
+                placeholder-gray-400 dark:placeholder-gray-500
+                focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-600/50
+                transition-all duration-200
+                text-sm
+              "
+              style={{
+                backdropFilter: 'blur(12px) saturate(120%)',
+                WebkitBackdropFilter: 'blur(12px) saturate(120%)',
+              }}
+            />
+            <button
+              onClick={addUrl}
+              className="
+                px-4 py-2.5
+                bg-blue-500 dark:bg-blue-600
+                hover:bg-blue-600 dark:hover:bg-blue-700
+                active:scale-[0.98]
+                text-white font-medium
+                rounded-lg
+                transition-all duration-200
+                text-sm
+                shadow-lg shadow-blue-500/20 dark:shadow-blue-600/20
+              ">
+              添加
+            </button>
+          </div>
+
+          {/* URL List */}
+          <div
+            className="
+              max-h-40 overflow-y-auto
+              backdrop-blur-xl
+              bg-white/40 dark:bg-gray-800/40
+              ring-1 ring-inset ring-gray-200/50 dark:ring-gray-700/50
+              rounded-xl
+              p-2
+              space-y-1.5
+            "
+            style={{
+              backdropFilter: 'blur(12px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(12px) saturate(120%)',
+            }}>
+            {allowedUrls.length === 0 ? (
+              <div className="text-center py-4 text-sm text-gray-500 dark:text-gray-400">
+                暂无允许的网站
+              </div>
+            ) : (
+              allowedUrls.map((url, index) => (
+                <div
+                  key={index}
+                  className="
+                    flex items-center justify-between gap-2
+                    px-3 py-2
+                    backdrop-blur-xl
+                    bg-white/60 dark:bg-gray-700/60
+                    rounded-lg
+                    text-sm
+                    group
+                  "
+                  style={{
+                    backdropFilter: 'blur(8px) saturate(120%)',
+                    WebkitBackdropFilter: 'blur(8px) saturate(120%)',
+                  }}>
+                  <span className="flex-1 text-gray-700 dark:text-gray-300 font-mono text-xs truncate">
+                    {url}
+                  </span>
+                  <button
+                    onClick={() => removeUrl(url)}
+                    className="
+                      opacity-0 group-hover:opacity-100
+                      p-1 rounded
+                      text-red-500 dark:text-red-400
+                      hover:bg-red-100 dark:hover:bg-red-900/30
+                      transition-all duration-200
+                    ">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
         {/* Save Button */}
         <button
           onClick={saveSettings}
@@ -233,56 +429,6 @@ export default function PopupApp() {
           ">
           保存设置
         </button>
-
-        {/* Notification */}
-        {notification && (
-          <div
-            className={`
-              p-4 rounded-xl
-              backdrop-blur-2xl
-              relative overflow-hidden
-              animate-slideIn
-              ${notification.type === 'success'
-                ? 'bg-green-50/25 dark:bg-green-900/15 text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-200/40 dark:ring-green-800/30'
-                : 'bg-red-50/25 dark:bg-red-900/20 text-red-700 dark:text-red-400 ring-1 ring-inset ring-red-200/40 dark:ring-red-800/30'
-              }
-            `}
-            style={{
-              backdropFilter: 'blur(16px) saturate(150%)',
-              WebkitBackdropFilter: 'blur(16px) saturate(150%)',
-            }}>
-            {/* Glass edge highlight */}
-            <div
-              className="absolute inset-0 rounded-xl pointer-events-none"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 50%)',
-                mixBlendMode: 'overlay',
-              }}
-            />
-
-            {/* Inner glow */}
-            <div
-              className="absolute inset-0 rounded-xl pointer-events-none opacity-50"
-              style={{
-                boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4), inset 0 -1px 2px rgba(0,0,0,0.05)',
-              }}
-            />
-
-            {/* Content */}
-            <div className="flex items-center gap-2 relative z-10">
-              {notification.type === 'success' ? (
-                <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                </svg>
-              ) : (
-                <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
-                </svg>
-              )}
-              <span className="text-sm font-medium">{notification.message}</span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

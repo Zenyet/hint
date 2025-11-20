@@ -8,6 +8,62 @@ let currentRoot: ReactDOM.Root | null = null;
 let currentContainer: HTMLElement | null = null;
 let currentTargetElement: HTMLElement | null = null;
 
+// 默认允许的域名列表（简化版）
+const DEFAULT_ALLOWED_URLS = [
+  'openai.com',
+  'chatgpt.com',
+  'claude.ai',
+  'yuanbao.tencent.com',
+  'gemini.google.com',
+  'chat.deepseek.com',
+  'grok.com'
+];
+
+/**
+ * 检查当前 URL 是否在允许的域名列表中
+ * @param url 当前页面 URL
+ * @param domains 允许的域名列表
+ * @returns 是否匹配
+ */
+function isUrlAllowed(url: string, domains: string[]): boolean {
+  try {
+    const currentUrl = new URL(url);
+    const hostname = currentUrl.hostname;
+
+    console.log('[Hint Extension] Checking hostname:', hostname);
+    console.log('[Hint Extension] Allowed domains:', domains);
+
+    // 检查 hostname 是否包含任何允许的域名
+    // 例如: chat.openai.com 包含 openai.com
+    for (const domain of domains) {
+      if (hostname === domain || hostname.endsWith('.' + domain)) {
+        console.log(`[Hint Extension] ✓ Hostname matched domain: ${domain}`);
+        return true;
+      }
+    }
+
+    console.log('[Hint Extension] ✗ Hostname did not match any domain');
+    return false;
+  } catch (error) {
+    console.error('[Hint Extension] Error in URL matching:', error);
+    return false;
+  }
+}
+
+/**
+ * 从 chrome.storage 获取允许的 URL 列表
+ * @returns 允许的 URL 模式数组
+ */
+async function getAllowedUrls(): Promise<string[]> {
+  try {
+    const result = await chrome.storage.sync.get('allowed_urls');
+    return result.allowed_urls || DEFAULT_ALLOWED_URLS;
+  } catch (error) {
+    console.warn('[Hint Extension] Failed to load allowed URLs from storage:', error);
+    return DEFAULT_ALLOWED_URLS;
+  }
+}
+
 // 查找可编辑元素
 function findEditableElement(): HTMLElement | null {
   console.log('[Hint Extension] Searching for editable element...');
@@ -135,8 +191,18 @@ function cleanup() {
 }
 
 // 初始化 Content Script
-function init() {
+async function init() {
   console.log('[Hint Extension] Initializing content script...');
+
+  // 检查当前 URL 是否在允许列表中
+  const allowedUrls = await getAllowedUrls();
+  const currentUrl = window.location.href;
+
+  if (!isUrlAllowed(currentUrl, allowedUrls)) {
+    console.log('[Hint Extension] Current URL not in allowed list, skipping initialization:', currentUrl);
+    return;
+  }
+
   const targetElement = findEditableElement();
 
   if (!targetElement) {
