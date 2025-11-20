@@ -6,9 +6,19 @@ export default defineConfig(({ mode }) => ({
   define: {
     'import.meta.env.DEV': JSON.stringify(mode === 'development'),
   },
-    build: {
+  // 全局 esbuild 配置
+  esbuild: {
+    // 生产环境移除 console 和 debugger
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
+  },
+  build: {
     outDir: 'dist',
     emptyOutDir: false,  // 不清空输出目录
+    minify: 'esbuild',
+    esbuild: {
+      // 生产环境移除 console 和 debugger
+      drop: mode === 'production' ? ['console', 'debugger'] : [],
+    },
     lib: {
       entry: resolve(__dirname, 'src/background/index.ts'),
       name: 'BackgroundScript',

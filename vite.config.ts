@@ -9,6 +9,11 @@ export default defineConfig(({ mode }) => ({
   define: {
     'import.meta.env.DEV': JSON.stringify(mode === 'development'),
   },
+  // 全局 esbuild 配置
+  esbuild: {
+    // 生产环境移除 console 和 debugger
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
+  },
   plugins: [
     react(),
     {
@@ -48,6 +53,11 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: 'dist',
     emptyOutDir: false,  // 不清空输出目录，避免删除其他配置生成的文件
+    minify: 'esbuild',
+    esbuild: {
+      // 生产环境移除 console 和 debugger
+      drop: mode === 'production' ? ['console', 'debugger'] : [],
+    },
     rollupOptions: {
       input: {
         popup: resolve(__dirname, 'src/popup/index.html'),
