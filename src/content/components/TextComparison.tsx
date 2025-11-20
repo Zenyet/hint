@@ -1,6 +1,7 @@
 interface TextComparisonProps {
   originalText: string;
   optimizedText: string;
+  buttonState: 'optimize' | 'replace';
 }
 
 /**
@@ -11,7 +12,7 @@ interface TextComparisonProps {
  * - Enhanced blur and vibrancy
  * - Clear visual distinction between original and optimized
  */
-export function TextComparison({ originalText, optimizedText }: TextComparisonProps) {
+export function TextComparison({ originalText, optimizedText, buttonState }: TextComparisonProps) {
   return (
     <div className="max-w-2xl space-y-2 animate-slideIn">
       {/* Before - Original Text */}
@@ -153,7 +154,7 @@ export function TextComparison({ originalText, optimizedText }: TextComparisonPr
               scrollbarWidth: 'thin',
               scrollbarColor: 'rgba(34, 197, 94, 0.3) transparent',
             }}>
-            {optimizedText || (
+            {buttonState === 'replace' ? (optimizedText || '暂无优化') : optimizedText || (
               <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500">
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>

@@ -119,6 +119,7 @@ export default function ContentApp({ targetElement, positioningElement }: Conten
         <TextComparison
           originalText={originalText}
           optimizedText={optimizedText}
+          buttonState={buttonState}
         />
       )}
 
