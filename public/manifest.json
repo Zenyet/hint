@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Hint - AI Prompt Assistant",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "An AI assistant for writing prompts",
   "icons": {
     "16": "assets/16.png",
