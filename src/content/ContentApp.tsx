@@ -9,7 +9,7 @@ import {
 } from './components';
 
 interface ContentAppProps {
-  targetElement: HTMLElement;        // 用于获取/设置文本内容
+  targetElement: HTMLElement | HTMLTextAreaElement;        // 用于获取/设置文本内容
   positioningElement: HTMLElement;   // 用于定位按钮位置
 }
 
@@ -50,7 +50,11 @@ export default function ContentApp({ targetElement, positioningElement }: Conten
   // Monitor content changes to update isEmpty state
   useEffect(() => {
     const checkEmpty = () => {
-      const text = (targetElement.textContent || '').trim();
+      const text = (
+        'value' in targetElement
+          ? targetElement.value
+          : targetElement.textContent || ''
+      ).trim();
       setIsEmpty(text.length === 0);
     };
 
