@@ -88,7 +88,7 @@ export default function PopupApp() {
   };
 
   return (
-    <div className="w-[420px] min-h-[500px] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 scrollbar-hide">
+    <div className="w-[420px] max-h-[500px] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 scrollbar-hide overflow-auto">
       {/* Notification - centered toast */}
       {notification && (
         <div
@@ -141,7 +141,7 @@ export default function PopupApp() {
         </div>
       )}
 
-      <div className="p-6 space-y-5 scrollbar-hide">
+      <div className="p-6 space-y-5">
         {/* API Key Input */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -364,10 +364,14 @@ export default function PopupApp() {
               rounded-xl
               p-2
               space-y-1.5
+              scrollbar-glass-green
             "
             style={{
               backdropFilter: 'blur(12px) saturate(120%)',
               WebkitBackdropFilter: 'blur(12px) saturate(120%)',
+              /* Firefox scrollbar */
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'rgba(34, 197, 94, 0.3) transparent',
             }}>
             {allowedUrls.length === 0 ? (
               <div className="text-center py-4 text-sm text-gray-500 dark:text-gray-400">
