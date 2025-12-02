@@ -5,7 +5,8 @@ import {
   TextComparison,
   ErrorMessage,
   ActionButton,
-  CloseButton
+  CloseButton,
+  PromptLibraryDropdown
 } from './components';
 
 interface ContentAppProps {
@@ -35,6 +36,12 @@ export default function ContentApp({ targetElement, positioningElement }: Conten
     return text.length === 0;
   });
 
+  // Track extension mode ('optimize' | 'prompt-library')
+  const [extensionMode, setExtensionMode] = useState<'optimize' | 'prompt-library'>('optimize');
+
+  // Track prompt library dropdown visibility
+  const [showPromptLibrary, setShowPromptLibrary] = useState(false);
+
   // Manage text optimization state and handlers
   const {
     buttonState,
@@ -46,6 +53,29 @@ export default function ContentApp({ targetElement, positioningElement }: Conten
     handleReplace,
     handleClose
   } = useTextOptimization(targetElement);
+
+  // Load extension mode from storage
+  useEffect(() => {
+    const loadExtensionMode = async () => {
+      const result = await chrome.storage.sync.get(['extension_mode']);
+      if (result.extension_mode) {
+        setExtensionMode(result.extension_mode);
+      }
+    };
+    loadExtensionMode();
+
+    // Listen for storage changes
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+      if (changes.extension_mode) {
+        setExtensionMode(changes.extension_mode.newValue);
+      }
+    };
+    chrome.storage.onChanged.addListener(handleStorageChange);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
+  }, []);
 
   // Monitor content changes to update isEmpty state
   useEffect(() => {
@@ -83,15 +113,38 @@ export default function ContentApp({ targetElement, positioningElement }: Conten
 
   // Handle action button click
   const handleActionClick = () => {
-    if (buttonState === 'idle') {
-      handleOptimize(getOriginalText());
+    if (extensionMode === 'prompt-library') {
+      // In prompt library mode, toggle the dropdown
+      setShowPromptLibrary(!showPromptLibrary);
     } else {
-      handleReplace(targetElement);
+      // In optimize mode, proceed with optimization or replacement
+      if (buttonState === 'idle') {
+        handleOptimize(getOriginalText());
+      } else {
+        handleReplace(targetElement);
+      }
     }
   };
 
-  // Idle state: Only show the action button (minimal UI)
+  // Handle prompt selection from library
+  const handlePromptSelect = (promptText: string) => {
+    // Insert the selected prompt into the target element
+    if ('value' in targetElement) {
+      targetElement.value = promptText;
+    } else {
+      targetElement.textContent = promptText;
+    }
+    // Trigger input event to notify the page
+    targetElement.dispatchEvent(new Event('input', { bubbles: true }));
+    // Close the dropdown
+    setShowPromptLibrary(false);
+  };
+
+  // Idle state: Show action button
   if (buttonState === 'idle') {
+    // In prompt-library mode, don't require text input
+    const shouldDisable = extensionMode === 'optimize' ? isEmpty : false;
+
     return (
       <div
         style={{
@@ -101,16 +154,25 @@ export default function ContentApp({ targetElement, positioningElement }: Conten
           transform: 'translateY(-100%)',
           zIndex: 9999,
           pointerEvents: 'auto',
-          // Add subtle shadow for depth
           filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15))'
         }}
         className="animate-fadeIn">
-        <ActionButton
-          buttonState={buttonState}
-          isLoading={isLoading}
-          disabled={isEmpty}
-          onClick={handleActionClick}
-        />
+        <div className="relative">
+          <ActionButton
+            buttonState={buttonState}
+            isLoading={isLoading}
+            disabled={shouldDisable}
+            onClick={handleActionClick}
+            extensionMode={extensionMode}
+          />
+          {/* Show prompt library dropdown when in prompt-library mode */}
+          {showPromptLibrary && extensionMode === 'prompt-library' && (
+            <PromptLibraryDropdown
+              onSelect={handlePromptSelect}
+              onClose={() => setShowPromptLibrary(false)}
+            />
+          )}
+        </div>
       </div>
     );
   }
@@ -138,6 +200,7 @@ export default function ContentApp({ targetElement, positioningElement }: Conten
           buttonState={buttonState}
           isLoading={isLoading}
           onClick={handleActionClick}
+          extensionMode={extensionMode}
         />
       )}
 

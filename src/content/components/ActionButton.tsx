@@ -5,6 +5,7 @@ interface ActionButtonProps {
   isLoading: boolean;
   disabled?: boolean;  // 禁用状态（例如：内容为空）
   onClick: () => void;
+  extensionMode?: 'optimize' | 'prompt-library';  // 扩展模式
 }
 
 /**
@@ -17,7 +18,7 @@ interface ActionButtonProps {
  * - iOS 17+ design language
  * - Disabled state with glass material (when content is empty)
  */
-export function ActionButton({ buttonState, isLoading, disabled = false, onClick }: ActionButtonProps) {
+export function ActionButton({ buttonState, isLoading, disabled = false, onClick, extensionMode = 'optimize' }: ActionButtonProps) {
   const getButtonIcon = () => {
     if (isLoading) return (
       <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -30,6 +31,10 @@ export function ActionButton({ buttonState, isLoading, disabled = false, onClick
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
       </svg>
     );
+    // In prompt-library mode and idle state, show banana icon
+    if (extensionMode === 'prompt-library' && buttonState === 'idle') {
+      return <span className="text-base leading-none">🍌</span>;
+    }
     return (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
         <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
@@ -38,7 +43,10 @@ export function ActionButton({ buttonState, isLoading, disabled = false, onClick
   };
 
   const getButtonTitle = () => {
-    return buttonState === 'idle' ? '优化文本' : '替换文本';
+    if (buttonState === 'idle') {
+      return extensionMode === 'prompt-library' ? '选择提示词' : '优化文本';
+    }
+    return '替换文本';
   };
 
   const getButtonStyles = () => {
@@ -108,13 +116,15 @@ export function ActionButton({ buttonState, isLoading, disabled = false, onClick
       disabled={isLoading || disabled}
       className={`
         ${getButtonStyles()}
-        p-2.5 rounded-full
+        rounded-full
         transition-all duration-300 ease-out
         active:scale-95
         disabled:opacity-60 disabled:cursor-not-allowed
         font-medium
         relative
         overflow-hidden
+        flex items-center justify-center
+        w-[36px] h-[36px]
       `}
       style={{
         // Liquid glass material properties for all states
