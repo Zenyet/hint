@@ -1,5 +1,9 @@
 import OpenAI from "openai";
 import prompt from "../../prompt";
+import { checkForUpdates, fetchRemotePrompts } from "../shared/remotePrompts";
+
+// 远程提示词更新检查间隔（毫秒）
+const UPDATE_CHECK_INTERVAL = 30 * 60 * 1000; // 30 分钟
 
 // Storage Service
 class StorageService {
@@ -107,9 +111,48 @@ chrome.runtime.onConnect.addListener((port) => {
     } else if (request.type === "ABORT_OPTIMIZATION") {
       backgroundService.abort();
       port.postMessage({ success: true });
+    } else if (request.type === "GET_REMOTE_PROMPTS") {
+      // 获取远程提示词
+      try {
+        const data = await fetchRemotePrompts(request.site);
+        port.postMessage({ type: "prompts", data });
+      } catch (error: any) {
+        port.postMessage({ error: error.message });
+      }
+    } else if (request.type === "CHECK_PROMPTS_UPDATE") {
+      // 检查提示词更新
+      try {
+        const result = await checkForUpdates();
+        port.postMessage({ type: "update_check", ...result });
+      } catch (error: any) {
+        port.postMessage({ error: error.message });
+      }
     }
   });
 });
+
+// 定期检查远程提示词更新
+async function schedulePromptsUpdate() {
+  try {
+    const { hasUpdate, version } = await checkForUpdates();
+    if (hasUpdate) {
+      console.log(`[RemotePrompts] New version available: ${version}, fetching...`);
+      await fetchRemotePrompts();
+      console.log('[RemotePrompts] Cache updated');
+    }
+  } catch (error) {
+    console.error('[RemotePrompts] Update check failed:', error);
+  }
+}
+
+// 扩展安装/更新时预加载提示词
+chrome.runtime.onInstalled.addListener(async () => {
+  console.log('[RemotePrompts] Extension installed/updated, fetching prompts...');
+  await fetchRemotePrompts();
+});
+
+// 定期检查更新
+setInterval(schedulePromptsUpdate, UPDATE_CHECK_INTERVAL);
 
 // 开发模式下的自动重载功能
 if (import.meta.env.DEV) {
