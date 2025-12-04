@@ -21,7 +21,7 @@ export default function PopupApp() {
   const [notification, setNotification] = useState<{message: string; type: 'success' | 'error'} | null>(null);
 
   // URL 管理相关状态（简化为域名列表）
-  const [allowedUrls, setAllowedUrls] = useState<string[]>([
+  const DEFAULT_ALLOWED_URLS = [
     'openai.com',
     'chatgpt.com',
     'claude.ai',
@@ -29,7 +29,8 @@ export default function PopupApp() {
     'gemini.google.com',
     'chat.deepseek.com',
     'grok.com'
-  ]);
+  ];
+  const [allowedUrls, setAllowedUrls] = useState<string[]>(DEFAULT_ALLOWED_URLS);
   const [newUrl, setNewUrl] = useState('');
 
   // 扩展功能模式
@@ -62,7 +63,11 @@ export default function PopupApp() {
     if (result.model_base_url) setModelUrl(result.model_base_url);
     if (result.model_name) setModelName(result.model_name);
     if (result.custom_prompt) setCustomPrompt(result.custom_prompt);
-    if (result.allowed_urls) setAllowedUrls(result.allowed_urls);
+    if (Array.isArray(result.allowed_urls)) {
+      setAllowedUrls(result.allowed_urls);
+    } else {
+      await chrome.storage.sync.set({ allowed_urls: DEFAULT_ALLOWED_URLS });
+    }
     if (result.extension_mode) setExtensionMode(result.extension_mode);
   };
 
@@ -88,7 +93,7 @@ export default function PopupApp() {
     }
   };
 
-  const addUrl = () => {
+  const addUrl = async () => {
     const trimmedUrl = newUrl.trim();
     if (!trimmedUrl) {
       showNotification('请输入有效的域名', 'error');
@@ -98,13 +103,27 @@ export default function PopupApp() {
       showNotification('该域名已存在', 'error');
       return;
     }
-    setAllowedUrls([...allowedUrls, trimmedUrl]);
+    const newAllowedUrls = [...allowedUrls, trimmedUrl];
+    setAllowedUrls(newAllowedUrls);
     setNewUrl('');
+    try {
+      await chrome.storage.sync.set({ allowed_urls: newAllowedUrls });
+    } catch (error: any) {
+      showNotification(`保存失败：${error.message}`, 'error');
+      return;
+    }
     showNotification('域名已添加', 'success');
   };
 
-  const removeUrl = (url: string) => {
-    setAllowedUrls(allowedUrls.filter(u => u !== url));
+  const removeUrl = async (url: string) => {
+    const newAllowedUrls = allowedUrls.filter(u => u !== url);
+    setAllowedUrls(newAllowedUrls);
+    try {
+      await chrome.storage.sync.set({ allowed_urls: newAllowedUrls });
+    } catch (error: any) {
+      showNotification(`保存失败：${error.message}`, 'error');
+      return;
+    }
     showNotification('域名已移除', 'success');
   };
 
