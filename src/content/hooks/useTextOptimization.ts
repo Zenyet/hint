@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { ButtonState, OptimizationResponse } from '../types';
+import { builtinTemplates, DEFAULT_TEMPLATE_ID } from '../../shared/templates';
+import { nanoBananaPrompts } from '../../shared/nanobanana-prompts';
 
 interface UseTextOptimizationResult {
   buttonState: ButtonState;
@@ -7,6 +9,8 @@ interface UseTextOptimizationResult {
   optimizedText: string;
   isLoading: boolean;
   errorMessage: string;
+  selectedTemplateId: string;
+  setSelectedTemplateId: (id: string) => void;
   handleOptimize: (originalText: string) => void;
   handleReplace: (targetElement: HTMLElement, cancel?: boolean) => void;
   handleClose: () => void;
@@ -23,7 +27,23 @@ export function useTextOptimization(targetElement: HTMLElement): UseTextOptimiza
   const [optimizedText, setOptimizedText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState(DEFAULT_TEMPLATE_ID);
   const portRef = useRef<chrome.runtime.Port | null>(null);
+
+  // Load saved template preference
+  useEffect(() => {
+    chrome.storage.sync.get(['selected_template_id']).then(result => {
+      if (result.selected_template_id) {
+        setSelectedTemplateId(result.selected_template_id);
+      }
+    });
+  }, []);
+
+  // Save template preference when changed
+  const handleSetSelectedTemplateId = useCallback((id: string) => {
+    setSelectedTemplateId(id);
+    chrome.storage.sync.set({ selected_template_id: id });
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -40,6 +60,11 @@ export function useTextOptimization(targetElement: HTMLElement): UseTextOptimiza
     setOriginalText(text);
     setOptimizedText('');
     setErrorMessage('');
+
+    // Get the selected template's prompt from both builtin and nanobanana prompts
+    const builtinTemplate = builtinTemplates.find(t => t.id === selectedTemplateId);
+    const nanoBananaTemplate = nanoBananaPrompts.find(p => p.id === selectedTemplateId);
+    const systemPrompt = builtinTemplate?.prompt || nanoBananaTemplate?.prompt;
 
     try {
       portRef.current = chrome.runtime.connect();
@@ -64,14 +89,16 @@ export function useTextOptimization(targetElement: HTMLElement): UseTextOptimiza
 
       portRef.current.postMessage({
         type: 'OPTIMIZE_TEXT',
-        text: text
+        text: text,
+        templateId: selectedTemplateId,
+        systemPrompt: systemPrompt
       });
     } catch (error: any) {
       setErrorMessage(error.message);
       setButtonState('error');
       setIsLoading(false);
     }
-  }, [isLoading]);
+  }, [isLoading, selectedTemplateId]);
 
   const handleReplace = useCallback((targetElement: HTMLElement, cancel = false) => {
     if (optimizedText && !cancel) {
@@ -121,6 +148,8 @@ export function useTextOptimization(targetElement: HTMLElement): UseTextOptimiza
     optimizedText,
     isLoading,
     errorMessage,
+    selectedTemplateId,
+    setSelectedTemplateId: handleSetSelectedTemplateId,
     handleOptimize,
     handleReplace,
     handleClose
