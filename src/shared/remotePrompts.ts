@@ -4,7 +4,7 @@
  */
 
 // 远程 API 地址（部署后替换为实际地址）
-const REMOTE_API_URL = 'https://hint-prompts-api.your-subdomain.workers.dev';
+const REMOTE_API_URL = 'https://hint-prompts-api.yex.workers.dev';
 
 // 缓存 keys
 const CACHE_KEY = 'remote_prompts_cache';
@@ -22,6 +22,7 @@ export interface RemotePrompt {
   category: string;
   sites: string[];
   author: string;
+  imageUrl?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -46,12 +47,16 @@ export async function fetchRemotePrompts(site?: string): Promise<RemotePromptsDa
   try {
     // 检查缓存是否有效
     const cached = await getCachedPrompts();
-    if (cached && !isCacheExpired()) {
-      // 如果需要按站点筛选，在本地过滤
+    const expired = await isCacheExpired();
+    if (cached && !expired) {
+      // 如果需要按站点筛选，在本地过滤（返回副本避免修改缓存）
       if (site && cached.prompts) {
-        cached.prompts = cached.prompts.filter(p =>
-          p.sites.includes('*') || p.sites.includes(site)
-        );
+        return {
+          ...cached,
+          prompts: cached.prompts.filter(p =>
+            p.sites.includes('*') || p.sites.includes(site)
+          )
+        };
       }
       return cached;
     }
@@ -195,6 +200,7 @@ export function convertToTemplateFormat(prompt: RemotePrompt) {
     category: 'text' as const,
     isBuiltin: false,
     sites: prompt.sites,
-    author: prompt.author
+    author: prompt.author,
+    imageUrl: prompt.imageUrl
   };
 }
