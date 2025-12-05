@@ -1,0 +1,178 @@
+@import "tailwindcss";
+
+@theme {
+  --font-family-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+}
+
+:root {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #ececec;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+}
+
+/* macOS 风格滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Finder 窗口整体 */
+.finder-window {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 22px 70px 4px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* 侧边栏分组标题 */
+.sidebar-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #86868b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 16px 20px 6px 20px;
+}
+
+/* 侧边栏项目 */
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  margin: 0 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #1d1d1f;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.sidebar-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-item.active {
+  background-color: rgba(0, 122, 255, 0.15);
+  color: #007aff;
+}
+
+.sidebar-item .icon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 标签颜色圆点 */
+.tag-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* 选中的图标项 */
+.finder-item.selected {
+  background: rgba(0, 122, 255, 0.15);
+  border-radius: 6px;
+}
+
+.finder-item.selected .item-name {
+  background: #007aff;
+  color: white;
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+
+/* 图片白边相框效果 */
+.photo-frame {
+  background: white;
+  padding: 4px;
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.photo-frame img {
+  border-radius: 1px;
+}
+
+/* Quick Look 背景模糊 */
+.quicklook-backdrop {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* 工具栏 */
+.finder-toolbar {
+  background: rgba(245, 245, 245, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* 工具栏按钮组 */
+.toolbar-btn-group {
+  display: flex;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.toolbar-btn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #666;
+  transition: all 0.15s ease;
+}
+
+.toolbar-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #333;
+}
+
+.toolbar-btn.active {
+  background: white;
+  color: #333;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* 动画 */
+.animate-quicklook-in {
+  animation: quicklook-in 0.2s ease-out;
+}
+
+@keyframes quicklook-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

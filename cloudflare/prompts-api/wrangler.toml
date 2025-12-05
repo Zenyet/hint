@@ -7,7 +7,7 @@ compatibility_date = "2024-01-01"
 # 然后将返回的 id 填入下方
 [[kv_namespaces]]
 binding = "PROMPTS_KV"
-id = "your-kv-namespace-id"  # 部署时替换
+id = "608aaa1109654d7c856dbf6056a0f214"  # 部署时替换
 
 # 开发环境预览 KV
 # 执行: wrangler kv:namespace create "PROMPTS_KV" --preview
@@ -15,6 +15,13 @@ id = "your-kv-namespace-id"  # 部署时替换
 # binding = "PROMPTS_KV"
 # id = "your-preview-kv-namespace-id"
 # preview_id = "your-preview-kv-namespace-id"
+
+# R2 存储桶绑定（用于图片上传）
+# 执行: wrangler r2 bucket create hint-prompts-images
+# 然后将 bucket_name 填入下方
+[[r2_buckets]]
+binding = "IMAGES_BUCKET"
+bucket_name = "hint-prompts-images"  # 部署时替换为实际 bucket 名称
 
 [vars]
 ENVIRONMENT = "production"

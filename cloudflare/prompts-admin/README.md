@@ -1,47 +1,73 @@
-# Hint 提示词管理网页
+# React + TypeScript + Vite
 
-简单的单页面管理界面，用于管理远程提示词库。
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## 部署到 Cloudflare Pages
+Currently, two official plugins are available:
 
-### 方式一：直接上传
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. 进入 **Pages**
-3. 点击 **Create a project** → **Direct Upload**
-4. 上传 `index.html` 文件
-5. 完成部署
+## React Compiler
 
-### 方式二：连接 Git 仓库
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-1. 将代码推送到 GitHub/GitLab
-2. 在 Cloudflare Pages 连接仓库
-3. 设置：
-   - Build command: (留空)
-   - Build output directory: `cloudflare/prompts-admin`
-4. 部署
+## Expanding the ESLint configuration
 
-## 配置
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-部署前，修改 `index.html` 中的 API 地址：
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-```javascript
-const API_URL = 'https://your-worker.workers.dev';
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
 
-替换为你的 Cloudflare Worker API 地址。
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-## 功能
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-- ✅ 查看所有提示词
-- ✅ 添加新提示词
-- ✅ 编辑提示词
-- ✅ 删除提示词
-- ✅ 按分类筛选
-- ✅ 按站点筛选
-- ✅ 实时统计
-
-## 自定义域名
-
-在 Cloudflare Pages 设置中添加自定义域名，例如：
-- `prompts.yourdomain.com`
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```

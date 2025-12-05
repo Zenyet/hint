@@ -4,9 +4,9 @@ export interface Prompt {
   title: string;
   content: string;
   category: string;
-  sites: string[];  // ["*"] 表示所有站点，["claude.ai", "chatgpt.com"] 表示特定站点
+  sites: string[];
   author: string;
-  imageUrl?: string;  // 可选的图片 URL
+  imageUrl?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -38,9 +38,20 @@ export interface UpdatePromptRequest {
   imageUrl?: string;
 }
 
-// Cloudflare Worker 环境变量类型
-export interface Env {
-  PROMPTS_KV: KVNamespace;
-  IMAGES_BUCKET: R2Bucket;
-  ENVIRONMENT: string;
+// 过滤条件
+export interface FilterState {
+  category: string | null;
+  site: string | null;
 }
+
+// 支持的站点列表
+export const SUPPORTED_SITES = [
+  { value: '*', label: '全部站点', icon: '🌐' },
+  { value: 'claude.ai', label: 'Claude', icon: '🤖' },
+  { value: 'chatgpt.com', label: 'ChatGPT', icon: '💬' },
+  { value: 'gemini.google.com', label: 'Gemini', icon: '✨' },
+  { value: 'chat.deepseek.com', label: 'DeepSeek', icon: '🔮' },
+];
+
+// 默认分类
+export const DEFAULT_CATEGORIES = ['开发', '写作', '翻译', 'AI对话', '分析', '创意', '其他'];

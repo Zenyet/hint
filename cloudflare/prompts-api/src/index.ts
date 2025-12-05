@@ -11,6 +11,10 @@ const corsHeaders = {
 // 默认分类
 const DEFAULT_CATEGORIES = ['开发', '写作', '翻译', 'AI对话', '分析', '创意', '其他'];
 
+// 允许的图片类型
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+
 // 初始化默认数据
 function getDefaultData(): PromptsData {
   return {
@@ -62,6 +66,12 @@ function errorResponse(message: string, status = 400): Response {
   return jsonResponse({ error: message }, status);
 }
 
+// 获取图片的公开 URL
+function getImageUrl(request: Request, imageKey: string): string {
+  const url = new URL(request.url);
+  return `${url.origin}/api/images/${imageKey}`;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -74,6 +84,74 @@ export default {
     }
 
     try {
+      // ==================== 图片相关接口 ====================
+
+      // POST /api/images - 上传图片
+      if (path === '/api/images' && method === 'POST') {
+        const contentType = request.headers.get('Content-Type') || '';
+
+        // 处理 multipart/form-data
+        if (contentType.includes('multipart/form-data')) {
+          const formData = await request.formData();
+          const file = formData.get('file') as File | null;
+
+          if (!file) {
+            return errorResponse('No file provided');
+          }
+
+          if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+            return errorResponse('Invalid file type. Allowed: JPEG, PNG, GIF, WebP');
+          }
+
+          if (file.size > MAX_IMAGE_SIZE) {
+            return errorResponse('File too large. Max size: 5MB');
+          }
+
+          // 生成唯一文件名
+          const ext = file.name.split('.').pop() || 'png';
+          const imageKey = `${generateId()}.${ext}`;
+
+          // 上传到 R2
+          await env.IMAGES_BUCKET.put(imageKey, file.stream(), {
+            httpMetadata: {
+              contentType: file.type,
+            },
+          });
+
+          const imageUrl = getImageUrl(request, imageKey);
+          return jsonResponse({ success: true, imageKey, imageUrl }, 201);
+        }
+
+        return errorResponse('Content-Type must be multipart/form-data');
+      }
+
+      // GET /api/images/:key - 获取图片
+      const imageMatch = path.match(/^\/api\/images\/([a-f0-9-]+\.[a-z]+)$/);
+      if (imageMatch && method === 'GET') {
+        const imageKey = imageMatch[1];
+        const object = await env.IMAGES_BUCKET.get(imageKey);
+
+        if (!object) {
+          return errorResponse('Image not found', 404);
+        }
+
+        const headers = new Headers();
+        object.writeHttpMetadata(headers);
+        headers.set('Cache-Control', 'public, max-age=31536000'); // 缓存 1 年
+        headers.set('Access-Control-Allow-Origin', '*');
+
+        return new Response(object.body, { headers });
+      }
+
+      // DELETE /api/images/:key - 删除图片
+      const imageDeleteMatch = path.match(/^\/api\/images\/([a-f0-9-]+\.[a-z]+)$/);
+      if (imageDeleteMatch && method === 'DELETE') {
+        const imageKey = imageDeleteMatch[1];
+        await env.IMAGES_BUCKET.delete(imageKey);
+        return jsonResponse({ success: true, message: 'Image deleted' });
+      }
+
+      // ==================== 提示词相关接口 ====================
       // GET /api/prompts - 获取所有提示词
       if (path === '/api/prompts' && method === 'GET') {
         const data = await getPromptsData(env.PROMPTS_KV);
@@ -136,6 +214,7 @@ export default {
           category: body.category || '其他',
           sites: body.sites || ['*'],
           author: body.author || 'anonymous',
+          imageUrl: body.imageUrl,
           createdAt: new Date().toISOString(),
         };
 
@@ -170,6 +249,7 @@ export default {
         if (body.content?.trim()) prompt.content = body.content.trim();
         if (body.category) prompt.category = body.category;
         if (body.sites) prompt.sites = body.sites;
+        if (body.imageUrl !== undefined) prompt.imageUrl = body.imageUrl;
         prompt.updatedAt = new Date().toISOString();
 
         // 如果分类不存在，添加到分类列表
@@ -220,6 +300,9 @@ export default {
           'PUT /api/prompts/:id - 更新提示词',
           'DELETE /api/prompts/:id - 删除提示词',
           'GET /api/categories - 获取所有分类',
+          'POST /api/images - 上传图片 (multipart/form-data)',
+          'GET /api/images/:key - 获取图片',
+          'DELETE /api/images/:key - 删除图片',
         ]
       });
 
