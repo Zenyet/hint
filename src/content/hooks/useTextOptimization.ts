@@ -1,7 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { ButtonState, OptimizationResponse } from '../types';
-import { builtinTemplates, DEFAULT_TEMPLATE_ID } from '../../shared/templates';
 import { nanoBananaPrompts } from '../../shared/nanobanana-prompts';
+
+// 默认模板ID
+const DEFAULT_TEMPLATE_ID = 'creative_ad';
 
 interface UseTextOptimizationResult {
   buttonState: ButtonState;
@@ -61,10 +63,9 @@ export function useTextOptimization(targetElement: HTMLElement): UseTextOptimiza
     setOptimizedText('');
     setErrorMessage('');
 
-    // Get the selected template's prompt from both builtin and nanobanana prompts
-    const builtinTemplate = builtinTemplates.find(t => t.id === selectedTemplateId);
-    const nanoBananaTemplate = nanoBananaPrompts.find(p => p.id === selectedTemplateId);
-    const systemPrompt = builtinTemplate?.prompt || nanoBananaTemplate?.prompt;
+    // Get the selected template's prompt from nanobanana prompts
+    const template = nanoBananaPrompts.find((t) => t.id === selectedTemplateId);
+    const systemPrompt = template?.prompt;
 
     try {
       portRef.current = chrome.runtime.connect();
