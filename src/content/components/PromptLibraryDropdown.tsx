@@ -256,7 +256,7 @@ export function PromptLibraryDropdown({ onSelect, onClose }: PromptLibraryDropdo
                   overflow-hidden relative
                   hover:bg-gray-100/80 dark:hover:bg-white/10
                   hover:shadow-sm
-                  text-gray-800 dark:text-gray-200
+                  text-gray-800 dark:text-gray-200 rounded-lg
                 "
               >
                 <div className="flex-1 min-w-0 relative z-10">
@@ -280,7 +280,7 @@ export function PromptLibraryDropdown({ onSelect, onClose }: PromptLibraryDropdo
               absolute
               w-[280px]
               backdrop-blur-2xl
-              bg-white/90 dark:bg-gray-900/90
+              bg-white/90
               ring-1 ring-inset ring-gray-200/50 dark:ring-white/20
               shadow-[0_8px_32px_rgba(31,38,135,0.15),0_1px_2px_rgba(0,0,0,0.1)]
               overflow-hidden
