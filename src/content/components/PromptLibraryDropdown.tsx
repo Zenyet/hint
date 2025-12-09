@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { siteConfigs, getSitePrompts, detectSiteFromUrl, SitePrompt } from '../../shared/site-prompts';
 import { fetchRemotePrompts, RemotePrompt, convertToTemplateFormat, uploadPrompt, uploadBase64Image } from '../../shared/remotePrompts';
 import { getLocalPrompts, saveLocalPrompt, deleteLocalPrompt, convertToSitePrompt, LocalPrompt } from '../../shared/localPrompts';
@@ -43,10 +44,13 @@ export function PromptLibraryDropdown({ onSelect, onClose }: PromptLibraryDropdo
   const [error, setError] = useState<string | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<'above' | 'below'>('above');
   const [hoveredPrompt, setHoveredPrompt] = useState<ExtendedSitePrompt | null>(null);
-  const [previewPosition, setPreviewPosition] = useState({ top: 0, left: 0 });
+  const [previewPosition, setPreviewPosition] = useState({ x: -9999, y: -9999 });
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   const mainDropdownRef = useRef<HTMLDivElement>(null);
   const parentRef = useRef<HTMLElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewCardRef = useRef<HTMLDivElement>(null);
 
   // 本地提示词管理状态
   const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -54,6 +58,30 @@ export function PromptLibraryDropdown({ onSelect, onClose }: PromptLibraryDropdo
   const [promptForm, setPromptForm] = useState({ title: '', content: '', imageData: '', uploadToRemote: false });
   const [isUploading, setIsUploading] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // 获取 Shadow DOM 根节点作为 portal 容器
+  useEffect(() => {
+    const dropdown = mainDropdownRef.current;
+    if (!dropdown) return;
+
+    // 向上查找 Shadow DOM 的根节点
+    let root: Node | null = dropdown;
+    while (root && !(root instanceof ShadowRoot)) {
+      root = root.parentNode;
+    }
+
+    if (root instanceof ShadowRoot) {
+      // 创建一个专门用于 portal 的容器
+      let container = root.querySelector('#preview-portal-container') as HTMLElement;
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'preview-portal-container';
+        container.style.cssText = 'position: fixed; top: 0; left: 0; z-index: 2147483647; pointer-events: none;';
+        root.appendChild(container);
+      }
+      setPortalContainer(container);
+    }
+  }, []);
 
   // 只在组件挂载时计算一次位置
   useEffect(() => {
@@ -148,25 +176,83 @@ export function PromptLibraryDropdown({ onSelect, onClose }: PromptLibraryDropdo
     loadPrompts(selectedSite);
   }, [selectedSite, loadPrompts]);
 
-  // Handle hover on prompt item
-  const handleMouseEnter = (prompt: ExtendedSitePrompt, event: React.MouseEvent<HTMLButtonElement>) => {
+  /**
+   * 更新预览卡片位置，跟随鼠标移动
+   * 使用 RAF 节流，避免高频更新
+   */
+  const rafRef = useRef<number | null>(null);
+  const updatePreviewPosition = useCallback((e: React.MouseEvent | MouseEvent) => {
+    // 使用 RAF 节流
+    if (rafRef.current) return;
+
+    rafRef.current = requestAnimationFrame(() => {
+      const cardWidth = 300;
+      const cardHeight = 220;
+      const offsetX = 20;
+
+      let x = e.clientX + offsetX;
+      let y = e.clientY - cardHeight / 2;
+
+      if (x + cardWidth > window.innerWidth - 20) {
+        x = e.clientX - cardWidth - offsetX;
+      }
+      if (x < 20) {
+        x = 20;
+      }
+      if (y < 20) {
+        y = 20;
+      }
+      if (y + cardHeight > window.innerHeight - 20) {
+        y = window.innerHeight - cardHeight - 20;
+      }
+
+      setPreviewPosition({ x, y });
+      rafRef.current = null;
+    });
+  }, []);
+
+  // 清理 RAF
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
+
+  // Handle hover on prompt item - 开始悬停
+  const handleMouseEnter = (prompt: ExtendedSitePrompt, event: React.MouseEvent) => {
     if (!prompt.imageUrl) return;
-
-    const buttonRect = event.currentTarget.getBoundingClientRect();
-    const dropdownRect = mainDropdownRef.current?.getBoundingClientRect();
-
-    if (dropdownRect) {
-      // 计算相对于主 dropdown 的位置
-      setPreviewPosition({
-        top: buttonRect.top - dropdownRect.top,
-        left: 320 + 8 // min-w-[320px] + gap
-      });
-    }
     setHoveredPrompt(prompt);
+    setIsPreviewVisible(true);
+    // 立即更新位置（绕过节流）
+    const cardWidth = 300;
+    const cardHeight = 220;
+    const offsetX = 20;
+    let x = event.clientX + offsetX;
+    let y = event.clientY - cardHeight / 2;
+    if (x + cardWidth > window.innerWidth - 20) x = event.clientX - cardWidth - offsetX;
+    if (x < 20) x = 20;
+    if (y < 20) y = 20;
+    if (y + cardHeight > window.innerHeight - 20) y = window.innerHeight - cardHeight - 20;
+    setPreviewPosition({ x, y });
   };
 
+  // 鼠标移动时更新预览位置 - 使用 ref 避免依赖 isPreviewVisible
+  const isPreviewVisibleRef = useRef(isPreviewVisible);
+  isPreviewVisibleRef.current = isPreviewVisible;
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isPreviewVisibleRef.current) {
+      updatePreviewPosition(e);
+    }
+  }, [updatePreviewPosition]);
+
+  // 结束悬停
   const handleMouseLeave = () => {
+    setIsPreviewVisible(false);
     setHoveredPrompt(null);
+    setPreviewPosition({ x: -9999, y: -9999 });
   };
 
   // 本地提示词管理
@@ -651,7 +737,8 @@ export function PromptLibraryDropdown({ onSelect, onClose }: PromptLibraryDropdo
                 >
                   <button
                     onClick={() => onSelect(prompt.prompt)}
-                    onMouseEnter={(e) => handleMouseEnter(prompt, e as any)}
+                    onMouseEnter={(e) => handleMouseEnter(prompt, e)}
+                    onMouseMove={handleMouseMove}
                     onMouseLeave={handleMouseLeave}
                     className="flex-1 min-w-0 text-left"
                   >
@@ -701,40 +788,46 @@ export function PromptLibraryDropdown({ onSelect, onClose }: PromptLibraryDropdo
           </div>
         )}
         </div>
+      </div>
 
-        {/* Image Preview Panel - Absolute position relative to main dropdown */}
-        {hoveredPrompt?.imageUrl && viewMode === 'list' && (
+      {/* Floating Preview Card - 使用 Portal 渲染到 Shadow DOM 根节点 */}
+      {portalContainer && hoveredPrompt?.imageUrl && viewMode === 'list' && isPreviewVisible && createPortal(
+        <div
+          ref={previewCardRef}
+          style={{
+            position: 'fixed',
+            left: `${previewPosition.x}px`,
+            top: `${previewPosition.y}px`,
+            width: '300px',
+            pointerEvents: 'none',
+            zIndex: 2147483647,
+          }}
+        >
           <div
-            className="
-              absolute
-              w-[280px]
-              backdrop-blur-2xl
-              bg-white
-              ring-1 ring-inset ring-gray-200/50 dark:ring-white/20
-              shadow-[0_8px_32px_rgba(31,38,135,0.15),0_1px_2px_rgba(0,0,0,0.1)]
-              overflow-hidden
-              z-[9999]
-              pointer-events-none
-              animate-fadeIn
-            "
             style={{
-              top: previewPosition.top,
-              left: previewPosition.left,
-              backdropFilter: 'blur(20px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              background: 'white',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)',
+              overflow: 'hidden',
+              padding: '8px',
             }}
           >
-            <div className="relative p-2">
-              <img
-                src={hoveredPrompt.imageUrl}
-                alt={hoveredPrompt.name}
-                className="w-full h-auto object-cover max-h-[250px]"
-                loading="lazy"
-              />
-            </div>
+            <img
+              src={hoveredPrompt.imageUrl}
+              alt={hoveredPrompt.name}
+              crossOrigin="anonymous"
+              referrerPolicy="no-referrer"
+              style={{
+                width: '100%',
+                height: 'auto',
+                maxHeight: '180px',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
           </div>
-        )}
-      </div>
+        </div>,
+        portalContainer
+      )}
     </>
   );
 }
