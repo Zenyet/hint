@@ -174,6 +174,86 @@ export async function clearCache(): Promise<void> {
 }
 
 /**
+ * 上传图片到远程服务器
+ */
+export async function uploadImage(file: File): Promise<{ imageKey: string; imageUrl: string }> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch(`${REMOTE_API_URL}/api/images`, {
+    method: 'POST',
+    body: formData
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Upload failed' }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+
+  const result = await response.json();
+  return { imageKey: result.imageKey, imageUrl: result.imageUrl };
+}
+
+/**
+ * 上传 base64 图片到远程服务器
+ */
+export async function uploadBase64Image(base64Data: string, filename: string = 'image.png'): Promise<{ imageKey: string; imageUrl: string }> {
+  // 将 base64 转换为 Blob
+  const byteString = atob(base64Data.split(',')[1]);
+  const mimeType = base64Data.split(',')[0].split(':')[1].split(';')[0];
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  const blob = new Blob([ab], { type: mimeType });
+  const file = new File([blob], filename, { type: mimeType });
+
+  return uploadImage(file);
+}
+
+/**
+ * 上传提示词到远程服务器
+ */
+export interface UploadPromptRequest {
+  title: string;
+  content: string;
+  category?: string;
+  sites?: string[];
+  author?: string;
+  imageUrl?: string;
+}
+
+export async function uploadPrompt(prompt: UploadPromptRequest): Promise<RemotePrompt> {
+  const response = await fetch(`${REMOTE_API_URL}/api/prompts`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      title: prompt.title,
+      content: prompt.content,
+      category: prompt.category || '其他',
+      sites: prompt.sites || ['*'],
+      author: prompt.author || 'anonymous',
+      imageUrl: prompt.imageUrl
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Upload failed' }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+
+  const result: RemotePrompt = await response.json();
+
+  // 上传成功后刷新缓存
+  await refreshCache();
+
+  return result;
+}
+
+/**
  * 获取 API URL（供管理页面使用）
  */
 export function getApiUrl(): string {
